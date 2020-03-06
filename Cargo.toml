@@ -1,8 +1,10 @@
 [package]
-name = "elf-rs"
+name = "elf-utilities"
 version = "0.1.0"
 authors = ["Drumato <drumatech109@gmail.com>"]
 edition = "2018"
+license = "MIT"
+description = "Utilities for parsing,generating,analyzing ELF"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
