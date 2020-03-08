@@ -32,3 +32,37 @@ pub type Elf64Section = u16;
 /* Type for version symbol information.  */
 pub type Elf32Versym = Elf32Half;
 pub type Elf64Versym = Elf64Half;
+
+#[cfg(test)]
+mod header_tests {
+    use super::*;
+
+    #[test]
+    fn construct_identification_test() {
+        let mut ehdr = header::Ehdr64::new();
+        ehdr.set_class(header::ELF64CLASS::CLASS64);
+        ehdr.set_data(header::ELF64DATA::DATA2LSB);
+        ehdr.set_version(header::ELF64VERSION::VERSIONCURRENT);
+        ehdr.set_osabi(header::ELF64OSABI::SYSV);
+
+        assert_eq!(
+            ehdr.get_identification(),
+            0x7f454c46020101000000000000000000
+        );
+    }
+
+    #[test]
+    fn construct_identification_with_buildter_test() {
+        let ehdr = header::Ehdr64Builder::new()
+            .class(header::ELF64CLASS::CLASS64)
+            .data(header::ELF64DATA::DATA2LSB)
+            .version(header::ELF64VERSION::VERSIONCURRENT)
+            .osabi(header::ELF64OSABI::SYSV)
+            .finalize();
+
+        assert_eq!(
+            ehdr.get_identification(),
+            0x7f454c46020101000000000000000000
+        );
+    }
+}
