@@ -1,4 +1,4 @@
-use crate::header::osabi;
+use crate::header::{class, data, osabi, version};
 use crate::*;
 
 pub const ELF_MAGIC_NUMBER: u128 = (0x7f454c46) << (12 * 8);
@@ -45,13 +45,13 @@ impl Ehdr64 {
     }
 
     // setter
-    pub fn set_class(&mut self, class: ELF64CLASS) {
+    pub fn set_class(&mut self, class: class::ELF64CLASS) {
         self.e_ident |= class.to_identifier();
     }
-    pub fn set_data(&mut self, data: ELF64DATA) {
+    pub fn set_data(&mut self, data: data::ELF64DATA) {
         self.e_ident |= data.to_identifier();
     }
-    pub fn set_version(&mut self, version: ELF64VERSION) {
+    pub fn set_version(&mut self, version: version::ELF64VERSION) {
         self.e_ident |= version.to_identifier();
     }
     pub fn set_osabi(&mut self, osabi: osabi::ELF64OSABI) {
@@ -95,15 +95,15 @@ impl Ehdr64Builder {
             e_shstrndx: 0,
         }
     }
-    pub fn class(&mut self, class: ELF64CLASS) -> &mut Self {
+    pub fn class(&mut self, class: class::ELF64CLASS) -> &mut Self {
         self.set_class(class);
         self
     }
-    pub fn data(&mut self, data: ELF64DATA) -> &mut Self {
+    pub fn data(&mut self, data: data::ELF64DATA) -> &mut Self {
         self.set_data(data);
         self
     }
-    pub fn version(&mut self, version: ELF64VERSION) -> &mut Self {
+    pub fn version(&mut self, version: version::ELF64VERSION) -> &mut Self {
         self.set_version(version);
         self
     }
@@ -130,95 +130,16 @@ impl Ehdr64Builder {
         }
     }
 
-    fn set_class(&mut self, class: ELF64CLASS) {
+    fn set_class(&mut self, class: class::ELF64CLASS) {
         self.e_ident |= class.to_identifier();
     }
-    fn set_data(&mut self, data: ELF64DATA) {
+    fn set_data(&mut self, data: data::ELF64DATA) {
         self.e_ident |= data.to_identifier();
     }
-    fn set_version(&mut self, version: ELF64VERSION) {
+    fn set_version(&mut self, version: version::ELF64VERSION) {
         self.e_ident |= version.to_identifier();
     }
     fn set_osabi(&mut self, osabi: osabi::ELF64OSABI) {
         self.e_ident |= osabi.to_identifier();
-    }
-}
-
-pub enum ELF64CLASS {
-    // invalid class
-    CLASSNone,
-    // 32bit objects
-    CLASS32,
-    // 64bit objects
-    CLASS64,
-    CLASSNUM,
-
-    // for architecture-specific-value
-    ANY(u8),
-}
-
-impl ELF64CLASS {
-    pub fn to_identifier(&self) -> u128 {
-        let byte = match self {
-            Self::CLASSNone => 0,
-            Self::CLASS32 => 1,
-            Self::CLASS64 => 2,
-            Self::CLASSNUM => 3,
-            Self::ANY(b) => *b,
-        };
-        Self::shift_position(byte)
-    }
-    fn shift_position(byte: u8) -> u128 {
-        (byte as u128) << 88
-    }
-}
-
-pub enum ELF64DATA {
-    // invalid data encoding
-    DATANONE,
-    // 2's complement little endian
-    DATA2LSB,
-    // 2's complement big endian
-    DATA2MSB,
-    DATA2NUM,
-
-    // for architecture-specific-value
-    ANY(u8),
-}
-
-impl ELF64DATA {
-    pub fn to_identifier(&self) -> u128 {
-        let byte = match self {
-            Self::DATANONE => 0,
-            Self::DATA2LSB => 1,
-            Self::DATA2MSB => 2,
-            Self::DATA2NUM => 3,
-            Self::ANY(c) => *c,
-        };
-        Self::shift_position(byte)
-    }
-    fn shift_position(byte: u8) -> u128 {
-        (byte as u128) << 80
-    }
-}
-
-pub enum ELF64VERSION {
-    // value must be 1
-    VERSIONCURRENT,
-
-    // for architecture-specific-value
-    ANY(u8),
-}
-
-impl ELF64VERSION {
-    pub fn to_identifier(&self) -> u128 {
-        let byte = match self {
-            Self::VERSIONCURRENT => 1,
-            Self::ANY(c) => *c,
-        };
-        Self::shift_position(byte)
-    }
-    fn shift_position(byte: u8) -> u128 {
-        (byte as u128) << 72
     }
 }
