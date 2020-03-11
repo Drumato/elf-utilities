@@ -49,6 +49,9 @@ mod header_tests {
             ehdr.get_identification(),
             0x7f454c46020101000000000000000000
         );
+
+        ehdr.set_elf_type(header::ELF64TYPE::TYPEEXEC);
+        assert_eq!(ehdr.get_elf_type(), header::ELF64TYPE::TYPEEXEC);
     }
 
     #[test]
@@ -58,6 +61,7 @@ mod header_tests {
             .data(header::ELF64DATA::DATA2LSB)
             .version(header::ELF64VERSION::VERSIONCURRENT)
             .osabi(header::ELF64OSABI::SYSV)
+            .elf_type(header::ELF64TYPE::TYPEEXEC)
             .finalize();
 
         assert_eq!(

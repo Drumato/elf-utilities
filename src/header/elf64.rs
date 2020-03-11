@@ -1,4 +1,4 @@
-use crate::header::{class, data, osabi, version};
+use crate::header::{class, data, elf_type, osabi, version};
 use crate::*;
 
 pub const ELF_MAGIC_NUMBER: u128 = (0x7f454c46) << (12 * 8);
@@ -43,6 +43,9 @@ impl Ehdr64 {
     pub fn get_identification(&self) -> u128 {
         self.e_ident
     }
+    pub fn get_elf_type(&self) -> elf_type::ELF64TYPE {
+        elf_type::ELF64TYPE::from(self.e_type)
+    }
 
     // setter
     pub fn set_class(&mut self, class: class::ELF64CLASS) {
@@ -56,6 +59,9 @@ impl Ehdr64 {
     }
     pub fn set_osabi(&mut self, osabi: osabi::ELF64OSABI) {
         self.e_ident |= osabi.to_identifier();
+    }
+    pub fn set_elf_type(&mut self, e_type: elf_type::ELF64TYPE) {
+        self.e_type = e_type.to_bytes();
     }
 }
 
@@ -111,6 +117,10 @@ impl Ehdr64Builder {
         self.set_osabi(osabi);
         self
     }
+    pub fn elf_type(&mut self, e_type: elf_type::ELF64TYPE) -> &mut Self {
+        self.set_elf_type(e_type);
+        self
+    }
     pub fn finalize(&self) -> Ehdr64 {
         Ehdr64 {
             e_ident: self.e_ident,
@@ -141,5 +151,8 @@ impl Ehdr64Builder {
     }
     fn set_osabi(&mut self, osabi: osabi::ELF64OSABI) {
         self.e_ident |= osabi.to_identifier();
+    }
+    fn set_elf_type(&mut self, e_type: elf_type::ELF64TYPE) {
+        self.e_type = e_type.to_bytes();
     }
 }
