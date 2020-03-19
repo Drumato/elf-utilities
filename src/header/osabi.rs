@@ -1,4 +1,4 @@
-pub enum ELF64OSABI {
+pub enum ELFOSABI {
     // UNIX System V ABI
     NONE,
     SYSV,
@@ -34,7 +34,7 @@ pub enum ELF64OSABI {
     ANY(u8),
 }
 
-impl ELF64OSABI {
+impl ELFOSABI {
     pub fn to_identifier(&self) -> u128 {
         let byte = match self {
             Self::NONE | Self::SYSV => 0,

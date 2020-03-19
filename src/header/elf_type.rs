@@ -1,5 +1,5 @@
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum ELF64TYPE {
+pub enum ELFTYPE {
     TYPENONE,
     TYPEREL,
     TYPEEXEC,
@@ -13,7 +13,7 @@ pub enum ELF64TYPE {
     ANY(u16),
 }
 
-impl ELF64TYPE {
+impl ELFTYPE {
     pub fn to_bytes(&self) -> u16 {
         match self {
             Self::TYPENONE => 0,
@@ -31,7 +31,7 @@ impl ELF64TYPE {
     }
 }
 
-impl From<u16> for ELF64TYPE {
+impl From<u16> for ELFTYPE {
     fn from(bytes: u16) -> Self {
         match bytes {
             0 => Self::TYPENONE,

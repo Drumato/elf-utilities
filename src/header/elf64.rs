@@ -43,24 +43,24 @@ impl Ehdr64 {
     pub fn get_identification(&self) -> u128 {
         self.e_ident
     }
-    pub fn get_elf_type(&self) -> elf_type::ELF64TYPE {
-        elf_type::ELF64TYPE::from(self.e_type)
+    pub fn get_elf_type(&self) -> elf_type::ELFTYPE {
+        elf_type::ELFTYPE::from(self.e_type)
     }
 
     // setter
-    pub fn set_class(&mut self, class: class::ELF64CLASS) {
+    pub fn set_class(&mut self, class: class::ELFCLASS) {
         self.e_ident |= class.to_identifier();
     }
-    pub fn set_data(&mut self, data: data::ELF64DATA) {
+    pub fn set_data(&mut self, data: data::ELFDATA) {
         self.e_ident |= data.to_identifier();
     }
-    pub fn set_version(&mut self, version: version::ELF64VERSION) {
+    pub fn set_version(&mut self, version: version::ELFVERSION) {
         self.e_ident |= version.to_identifier();
     }
-    pub fn set_osabi(&mut self, osabi: osabi::ELF64OSABI) {
+    pub fn set_osabi(&mut self, osabi: osabi::ELFOSABI) {
         self.e_ident |= osabi.to_identifier();
     }
-    pub fn set_elf_type(&mut self, e_type: elf_type::ELF64TYPE) {
+    pub fn set_elf_type(&mut self, e_type: elf_type::ELFTYPE) {
         self.e_type = e_type.to_bytes();
     }
 }
@@ -101,23 +101,23 @@ impl Ehdr64Builder {
             e_shstrndx: 0,
         }
     }
-    pub fn class(&mut self, class: class::ELF64CLASS) -> &mut Self {
+    pub fn class(&mut self, class: class::ELFCLASS) -> &mut Self {
         self.set_class(class);
         self
     }
-    pub fn data(&mut self, data: data::ELF64DATA) -> &mut Self {
+    pub fn data(&mut self, data: data::ELFDATA) -> &mut Self {
         self.set_data(data);
         self
     }
-    pub fn version(&mut self, version: version::ELF64VERSION) -> &mut Self {
+    pub fn version(&mut self, version: version::ELFVERSION) -> &mut Self {
         self.set_version(version);
         self
     }
-    pub fn osabi(&mut self, osabi: osabi::ELF64OSABI) -> &mut Self {
+    pub fn osabi(&mut self, osabi: osabi::ELFOSABI) -> &mut Self {
         self.set_osabi(osabi);
         self
     }
-    pub fn elf_type(&mut self, e_type: elf_type::ELF64TYPE) -> &mut Self {
+    pub fn elf_type(&mut self, e_type: elf_type::ELFTYPE) -> &mut Self {
         self.set_elf_type(e_type);
         self
     }
@@ -140,19 +140,19 @@ impl Ehdr64Builder {
         }
     }
 
-    fn set_class(&mut self, class: class::ELF64CLASS) {
+    fn set_class(&mut self, class: class::ELFCLASS) {
         self.e_ident |= class.to_identifier();
     }
-    fn set_data(&mut self, data: data::ELF64DATA) {
+    fn set_data(&mut self, data: data::ELFDATA) {
         self.e_ident |= data.to_identifier();
     }
-    fn set_version(&mut self, version: version::ELF64VERSION) {
+    fn set_version(&mut self, version: version::ELFVERSION) {
         self.e_ident |= version.to_identifier();
     }
-    fn set_osabi(&mut self, osabi: osabi::ELF64OSABI) {
+    fn set_osabi(&mut self, osabi: osabi::ELFOSABI) {
         self.e_ident |= osabi.to_identifier();
     }
-    fn set_elf_type(&mut self, e_type: elf_type::ELF64TYPE) {
+    fn set_elf_type(&mut self, e_type: elf_type::ELFTYPE) {
         self.e_type = e_type.to_bytes();
     }
 }

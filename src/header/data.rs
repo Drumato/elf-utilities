@@ -1,4 +1,4 @@
-pub enum ELF64DATA {
+pub enum ELFDATA {
     // invalid data encoding
     DATANONE,
     // 2's complement little endian
@@ -11,7 +11,7 @@ pub enum ELF64DATA {
     ANY(u8),
 }
 
-impl ELF64DATA {
+impl ELFDATA {
     pub fn to_identifier(&self) -> u128 {
         let byte = match self {
             Self::DATANONE => 0,
@@ -26,4 +26,3 @@ impl ELF64DATA {
         (byte as u128) << 80
     }
 }
-

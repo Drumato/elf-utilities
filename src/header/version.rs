@@ -1,4 +1,4 @@
-pub enum ELF64VERSION {
+pub enum ELFVERSION {
     // value must be 1
     VERSIONCURRENT,
 
@@ -6,7 +6,7 @@ pub enum ELF64VERSION {
     ANY(u8),
 }
 
-impl ELF64VERSION {
+impl ELFVERSION {
     pub fn to_identifier(&self) -> u128 {
         let byte = match self {
             Self::VERSIONCURRENT => 1,

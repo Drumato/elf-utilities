@@ -1,4 +1,4 @@
-pub enum ELF64CLASS {
+pub enum ELFCLASS {
     // invalid class
     CLASSNone,
     // 32bit objects
@@ -11,7 +11,7 @@ pub enum ELF64CLASS {
     ANY(u8),
 }
 
-impl ELF64CLASS {
+impl ELFCLASS {
     pub fn to_identifier(&self) -> u128 {
         let byte = match self {
             Self::CLASSNone => 0,
@@ -26,4 +26,3 @@ impl ELF64CLASS {
         (byte as u128) << 88
     }
 }
-

@@ -40,28 +40,28 @@ mod header_tests {
     #[test]
     fn construct_identification_test() {
         let mut ehdr = header::Ehdr64::new();
-        ehdr.set_class(header::ELF64CLASS::CLASS64);
-        ehdr.set_data(header::ELF64DATA::DATA2LSB);
-        ehdr.set_version(header::ELF64VERSION::VERSIONCURRENT);
-        ehdr.set_osabi(header::ELF64OSABI::SYSV);
+        ehdr.set_class(header::ELFCLASS::CLASS64);
+        ehdr.set_data(header::ELFDATA::DATA2LSB);
+        ehdr.set_version(header::ELFVERSION::VERSIONCURRENT);
+        ehdr.set_osabi(header::ELFOSABI::SYSV);
 
         assert_eq!(
             ehdr.get_identification(),
             0x7f454c46020101000000000000000000
         );
 
-        ehdr.set_elf_type(header::ELF64TYPE::TYPEEXEC);
-        assert_eq!(ehdr.get_elf_type(), header::ELF64TYPE::TYPEEXEC);
+        ehdr.set_elf_type(header::ELFTYPE::TYPEEXEC);
+        assert_eq!(ehdr.get_elf_type(), header::ELFTYPE::TYPEEXEC);
     }
 
     #[test]
     fn construct_identification_with_buildter_test() {
         let ehdr = header::Ehdr64Builder::new()
-            .class(header::ELF64CLASS::CLASS64)
-            .data(header::ELF64DATA::DATA2LSB)
-            .version(header::ELF64VERSION::VERSIONCURRENT)
-            .osabi(header::ELF64OSABI::SYSV)
-            .elf_type(header::ELF64TYPE::TYPEEXEC)
+            .class(header::ELFCLASS::CLASS64)
+            .data(header::ELFDATA::DATA2LSB)
+            .version(header::ELFVERSION::VERSIONCURRENT)
+            .osabi(header::ELFOSABI::SYSV)
+            .elf_type(header::ELFTYPE::TYPEEXEC)
             .finalize();
 
         assert_eq!(
