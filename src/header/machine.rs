@@ -1,5 +1,6 @@
 use crate::*;
 
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum ELFMACHINE {
     // No machine
     EMNONE,
@@ -93,5 +94,110 @@ pub enum ELFMACHINE {
     EMME16,
     // STMicroelectronic ST100 processor
     EMST100,
+    // Advanced Logic Corp. TinyJ embedded processor
+    EMTINYJ,
+    // Advanced Micro Devices X86-64 processor
+    EMX8664,
+    // Sony DSP Processor
+    EMPDSP,
+    // Digital Equipment Corp. PDP-10
+    EMPDP10,
+    // Digital Equipment Corp. PDP-11
+    EMPDP11,
+    // Siemens FX66 microcontroller
+    EMFX66,
+    // STMicroelectronics ST9+ 8/16 bit microcontroller
+    EMST9PLUS,
+    // STMicroelectronics ST7 8-bit microcontroller
+    EMST7,
+    // Motorola MC68HC16 Microcontroller
+    EM68HC16,
+    // Motorola MC68HC11 Microcontroller
+    EM68HC11,
+    // Motorola MC68HC08 Microcontroller
+    EM68HC08,
+    // Motorola MC68HC05 Microcontroller
+    EM68HC05,
+    // Silicon Graphics SVx
+    EMSVX,
+    // STMicroelectronics ST19 8-bit cpu
+    EMST19,
+    // Digital VAX
+    EMVAX,
+    // Axis Communications 32-bit embedded processor
+    EMCRIS,
+    // Infineon Technologies 32-bit embedded cpu
+    EMJAVELIN,
+    // Element 14 64-bit DSP processor
+    EMFIREPATH,
+    // LSI Logic's 16-bit DSP processor
+    EMZSP,
+    // Donald Knuth's educational 64-bit processor
+    EMMMIX,
+    // Harvard's machine-independent format
+    EMHUANY,
+    // SiTera Prism
+    EMPRISM,
+    // Atmel AVR 8-bit microcontroller
+    EMAVR,
+    // Fujitsu FR30
+    EMFR30,
+    // Mitsubishi D10V
+    EMD10V,
+    // Mitsubishi D30V
+    EMD30V,
+    // Renesas V850 (formerly NEC V850)
+    EMV850,
+    // Renesas M32R (formerly Mitsubishi M32R)
+    EMM32R,
+    // Matsushita MN10300
+    EMMN10300,
+    // Matsushita MN10200
+    EMMN10200,
+    // picoJava
+    EMPJ,
+    // OpenRISC 1000 32-bit embedded processor
+    EMOR1K,
+    // ARC International ARCompact processor
+    EMARCCOMPACT,
+    // Tensilica Xtensa Architecture
+    EMXTENSA,
+    // Old Sunplus S+core7 backend magic number.
+    // Written in the absence of an ABI.
+    EMSCOREOLD,
+    // Alphamosaic VideoCore processor
+    EMVIDEOCORE,
+    // Thompson Multimedia General Purpose Processor
+    EMTMMGPP,
+    // National Semiconductor 32000 series
+    EMNS32K,
+    // Tenor Network TPC processor
+    EMTPC,
+    // Old value for picoJava. Deprecated.
+    EMPJOLD,
+    // Trebia SNP 1000 processor
+    EMSNP1K,
+    // STMicroelectronics ST200 microcontroller
+    EMST200,
     ANY(Elf64Half),
+}
+
+impl ELFMACHINE {
+    pub fn to_bytes(&self) -> Elf64Half {
+        let bytes = match self {
+            Self::EMX8664 => 62,
+            Self::ANY(c) => *c,
+            _ => panic!("not implemented -> {:?}", self),
+        };
+        return bytes;
+    }
+}
+
+impl From<Elf64Half> for ELFMACHINE {
+    fn from(bytes: Elf64Half) -> Self {
+        match bytes {
+            62 => Self::EMX8664,
+            _ => Self::ANY(bytes),
+        }
+    }
 }

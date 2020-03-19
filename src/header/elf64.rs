@@ -1,4 +1,4 @@
-use crate::header::{class, data, elf_type, osabi, version};
+use crate::header::{class, data, elf_type, machine, osabi, version};
 use crate::*;
 
 pub const ELF_MAGIC_NUMBER: u128 = (0x7f454c46) << (12 * 8);
@@ -46,6 +46,9 @@ impl Ehdr64 {
     pub fn get_elf_type(&self) -> elf_type::ELFTYPE {
         elf_type::ELFTYPE::from(self.e_type)
     }
+    pub fn get_machine(&self) -> machine::ELFMACHINE {
+        machine::ELFMACHINE::from(self.e_machine)
+    }
 
     // setter
     pub fn set_class(&mut self, class: class::ELFCLASS) {
@@ -62,6 +65,9 @@ impl Ehdr64 {
     }
     pub fn set_elf_type(&mut self, e_type: elf_type::ELFTYPE) {
         self.e_type = e_type.to_bytes();
+    }
+    pub fn set_machine(&mut self, e_machine: machine::ELFMACHINE) {
+        self.e_machine = e_machine.to_bytes();
     }
 }
 

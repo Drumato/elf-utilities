@@ -69,4 +69,12 @@ mod header_tests {
             0x7f454c46020101000000000000000000
         );
     }
+
+    #[test]
+    fn set_elf_machine_architecture_test() {
+        let mut ehdr = header::Ehdr64::new();
+        ehdr.set_machine(header::ELFMACHINE::EMX8664);
+
+        assert_eq!(ehdr.get_machine(), header::ELFMACHINE::EMX8664);
+    }
 }
