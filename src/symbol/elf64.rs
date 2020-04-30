@@ -53,4 +53,34 @@ impl Symbol64 {
     pub fn set_size(&mut self, size: Elf64Xword) {
         self.st_size = size;
     }
+
+    pub fn to_le_bytes(&self) -> Vec<u8> {
+        let mut bytes: Vec<u8> = Vec::new();
+
+        for byte in self.st_name.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.st_info.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.st_other.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.st_shndx.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.st_value.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.st_size.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        bytes
+    }
 }
