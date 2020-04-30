@@ -1,6 +1,8 @@
-#[allow(unused)]
+pub mod file;
 pub mod header;
+pub mod section;
 
+#[allow(unused)]
 /* Type for a 16-bit quantity.  */
 pub type Elf32Half = u16;
 pub type Elf64Half = u16;
@@ -34,12 +36,25 @@ pub type Elf32Versym = Elf32Half;
 pub type Elf64Versym = Elf64Half;
 
 #[cfg(test)]
-mod header_tests {
+mod file_tests {
+    use super::*;
+
+    #[test]
+    fn construct_file_test() {
+        let ehdr: header::Ehdr64 = Default::default();
+        let elf_file = file::ELF64::new(ehdr);
+
+        assert_eq!(elf_file.section_number() == 0);
+    }
+}
+
+#[cfg(test)]
+mod elf_header_tests {
     use super::*;
 
     #[test]
     fn construct_identification_test() {
-        let mut ehdr = header::Ehdr64::new();
+        let mut ehdr: header::Ehdr64 = Default::default();
         ehdr.set_class(header::ELFCLASS::CLASS64);
         ehdr.set_data(header::ELFDATA::DATA2LSB);
         ehdr.set_version(header::ELFVERSION::VERSIONCURRENT);
@@ -50,29 +65,13 @@ mod header_tests {
             0x7f454c46020101000000000000000000
         );
 
-        ehdr.set_elf_type(header::ELFTYPE::TYPEEXEC);
-        assert_eq!(ehdr.get_elf_type(), header::ELFTYPE::TYPEEXEC);
-    }
-
-    #[test]
-    fn construct_identification_with_buildter_test() {
-        let ehdr = header::Ehdr64Builder::new()
-            .class(header::ELFCLASS::CLASS64)
-            .data(header::ELFDATA::DATA2LSB)
-            .version(header::ELFVERSION::VERSIONCURRENT)
-            .osabi(header::ELFOSABI::SYSV)
-            .elf_type(header::ELFTYPE::TYPEEXEC)
-            .finalize();
-
-        assert_eq!(
-            ehdr.get_identification(),
-            0x7f454c46020101000000000000000000
-        );
+        ehdr.set_elf_type(header::ELFTYPE::EXEC);
+        assert_eq!(ehdr.get_elf_type(), header::ELFTYPE::EXEC);
     }
 
     #[test]
     fn set_elf_machine_architecture_test() {
-        let mut ehdr = header::Ehdr64::new();
+        let mut ehdr: header::Ehdr64 = Default::default();
         ehdr.set_machine(header::ELFMACHINE::EMX8664);
 
         assert_eq!(ehdr.get_machine(), header::ELFMACHINE::EMX8664);

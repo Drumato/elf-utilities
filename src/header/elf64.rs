@@ -20,8 +20,8 @@ pub struct Ehdr64 {
     e_shstrndx: Elf64Half,
 }
 
-impl Ehdr64 {
-    pub fn new() -> Self {
+impl Default for Ehdr64 {
+    fn default() -> Self {
         Self {
             e_ident: ELF_MAGIC_NUMBER,
             e_type: 0,
@@ -39,6 +39,9 @@ impl Ehdr64 {
             e_shstrndx: 0,
         }
     }
+}
+
+impl Ehdr64 {
     // getter
     pub fn get_identification(&self) -> u128 {
         self.e_ident
@@ -88,8 +91,9 @@ pub struct Ehdr64Builder {
     e_shnum: Elf64Half,
     e_shstrndx: Elf64Half,
 }
-impl Ehdr64Builder {
-    pub fn new() -> Self {
+
+impl Default for Ehdr64Builder {
+    fn default() -> Self {
         Self {
             e_ident: ELF_MAGIC_NUMBER,
             e_type: 0,
@@ -107,6 +111,9 @@ impl Ehdr64Builder {
             e_shstrndx: 0,
         }
     }
+}
+
+impl Ehdr64Builder {
     pub fn class(&mut self, class: class::ELFCLASS) -> &mut Self {
         self.set_class(class);
         self
