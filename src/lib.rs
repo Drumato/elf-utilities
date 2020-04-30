@@ -2,6 +2,7 @@ pub mod file;
 pub mod header;
 pub mod relocation;
 pub mod section;
+pub mod symbol;
 
 #[allow(unused)]
 /* Type for a 16-bit quantity.  */
