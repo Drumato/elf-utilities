@@ -1,5 +1,6 @@
 pub mod file;
 pub mod header;
+pub mod relocation;
 pub mod section;
 
 #[allow(unused)]

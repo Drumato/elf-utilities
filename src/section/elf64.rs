@@ -1,7 +1,6 @@
 use crate::section::section_type;
 use crate::*;
 
-#[repr(C)]
 pub struct Section64 {
     pub name: String,
     pub header: Shdr64,
