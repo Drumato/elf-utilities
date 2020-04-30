@@ -28,4 +28,22 @@ impl Rela64 {
     pub fn set_info(&mut self, info: Elf64Xword) {
         self.r_info = info;
     }
+
+    pub fn to_le_bytes(&self) -> Vec<u8> {
+        let mut bytes: Vec<u8> = Vec::new();
+
+        for byte in self.r_offset.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.r_info.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.r_addend.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        bytes
+    }
 }

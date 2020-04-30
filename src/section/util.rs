@@ -1,5 +1,3 @@
-use crate::*;
-
 pub fn build_string_table(names: Vec<&str>) -> Vec<u8> {
     // ELFの文字列テーブルは null-byte + (name + null-byte) * n という形状に
     // それに合うようにバイト列を構築.
