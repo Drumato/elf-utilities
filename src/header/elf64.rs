@@ -1,7 +1,7 @@
 use crate::header::{class, data, elf_type, machine, osabi, version};
 use crate::*;
 
-pub const ELF_MAGIC_NUMBER: u128 = (0x7f454c46) << (12 * 8);
+pub const ELF_MAGIC_NUMBER: u128 = (0x7f45_4c46) << (12 * 8);
 #[repr(C)]
 pub struct Ehdr64 {
     e_ident: u128,

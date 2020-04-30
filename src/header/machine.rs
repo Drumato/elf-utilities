@@ -184,12 +184,11 @@ pub enum ELFMACHINE {
 
 impl ELFMACHINE {
     pub fn to_bytes(&self) -> Elf64Half {
-        let bytes = match self {
+        match self {
             Self::EMX8664 => 62,
             Self::ANY(c) => *c,
             _ => panic!("not implemented -> {:?}", self),
-        };
-        return bytes;
+        }
     }
 }
 
