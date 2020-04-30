@@ -1,8 +1,6 @@
 use crate::header;
 use crate::section;
 
-// use crate::section;
-
 #[repr(C)]
 pub struct ELF64 {
     ehdr: header::Ehdr64,
@@ -20,5 +18,9 @@ impl ELF64 {
 
     pub fn section_number(&self) -> usize {
         self.sections.len()
+    }
+
+    pub fn add_section(&mut self, sct: section::Section64) {
+        self.sections.push(sct);
     }
 }

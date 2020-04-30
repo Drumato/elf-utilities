@@ -16,6 +16,10 @@ impl Section64 {
             bytes: Vec::new(),
         }
     }
+
+    pub fn new_null_section() -> Self {
+        Self::new(String::new(), Default::default())
+    }
 }
 
 #[repr(C)]
