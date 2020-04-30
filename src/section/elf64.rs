@@ -71,6 +71,12 @@ impl Shdr64 {
     pub fn get_entry_size(&self) -> Elf64Xword {
         self.sh_entsize
     }
+    pub fn get_flags(&self) -> Elf64Xword {
+        self.sh_flags
+    }
+    pub fn get_addralign(&self) -> Elf64Xword {
+        self.sh_addralign
+    }
 
     // setter
     pub fn set_type(&mut self, ty: section_type::SHTYPE) {
@@ -87,5 +93,12 @@ impl Shdr64 {
     }
     pub fn set_entry_size(&mut self, entry_size: Elf64Xword) {
         self.sh_entsize = entry_size;
+    }
+    pub fn set_flags(&mut self, flags: Elf64Xword) {
+        self.sh_flags = flags;
+    }
+
+    pub fn set_addralign(&mut self, addralign: Elf64Xword) {
+        self.sh_addralign = addralign;
     }
 }
