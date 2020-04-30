@@ -1,5 +1,11 @@
 use crate::*;
 
+/* definitions for st_info(bind) */
+pub const STB_GLOBAL: u8 = 1; /* Global symbol */
+
+/* definitions for st_info(type) */
+pub const STT_FUNC: u8 = 2; /* Symbol is a code object */
+
 #[repr(C)]
 pub struct Symbol64 {
     st_name: Elf64Word,
