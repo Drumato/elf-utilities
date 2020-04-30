@@ -34,7 +34,10 @@ impl Symbol64 {
     pub fn new_null_symbol() -> Self {
         Default::default()
     }
-
+    // each Symbol64 size for Shdr64.sh_entsize
+    pub fn size() -> Elf64Xword {
+        0x40
+    }
     pub fn set_name(&mut self, name: Elf64Word) {
         self.st_name = name;
     }
