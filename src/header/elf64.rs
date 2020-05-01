@@ -59,6 +59,30 @@ impl Ehdr64 {
     }
 
     // setter
+    pub fn set_phoff(&mut self, phoff: Elf64Off) {
+        self.e_phoff = phoff;
+    }
+    pub fn set_shoff(&mut self, shoff: Elf64Off) {
+        self.e_shoff = shoff;
+    }
+    pub fn set_phentsize(&mut self, phentsize: Elf64Half) {
+        self.e_phentsize = phentsize;
+    }
+    pub fn set_shentsize(&mut self, shentsize: Elf64Half) {
+        self.e_shentsize = shentsize;
+    }
+    pub fn set_phnum(&mut self, phnum: Elf64Half) {
+        self.e_phnum = phnum;
+    }
+    pub fn set_shnum(&mut self, shnum: Elf64Half) {
+        self.e_shnum = shnum;
+    }
+    pub fn set_ehsize(&mut self, ehsize: Elf64Half) {
+        self.e_ehsize = ehsize;
+    }
+    pub fn set_shstrndx(&mut self, shstrndx: Elf64Half) {
+        self.e_shstrndx = shstrndx;
+    }
     pub fn set_class(&mut self, class: class::ELFCLASS) {
         self.e_ident |= class.to_identifier();
     }
