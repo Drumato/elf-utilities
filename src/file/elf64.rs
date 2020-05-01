@@ -24,6 +24,35 @@ impl ELF64 {
         self.ehdr.set_ehsize(header::Ehdr64::size());
         let shoff = self.sum_section_sizes(header::Ehdr64::size() as u64);
         self.ehdr.set_shoff(shoff);
+
+        // セクション名を揃える
+        let shstrndx = self.ehdr.get_shstrndx() as usize;
+        let shnum = self.ehdr.get_shnum() as usize;
+        let name_count = self.sections[shstrndx]
+            .bytes
+            .iter()
+            .filter(|num| *num == &0x00)
+            .collect::<Vec<&u8>>()
+            .len()
+            - 1;
+
+        let mut sh_name = 1;
+        for (idx, bb) in self.sections[shstrndx]
+            .bytes
+            .to_vec()
+            .splitn(name_count, |num| *num == 0x00)
+            .enumerate()
+        {
+            if idx == 0 || idx >= shnum {
+                continue;
+            }
+            let b: Vec<&u8> = bb
+                .iter()
+                .take_while(|num| *num != &0x00)
+                .collect::<Vec<&u8>>();
+            self.sections[idx].header.set_name(sh_name as u32);
+            sh_name += b.len() as u32 + 1;
+        }
     }
 
     pub fn to_le_bytes(&self) -> Vec<u8> {

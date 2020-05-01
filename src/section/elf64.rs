@@ -82,6 +82,9 @@ impl Shdr64 {
     }
 
     // setter
+    pub fn set_name(&mut self, name: Elf64Word) {
+        self.sh_name = name;
+    }
     pub fn set_type(&mut self, ty: section_type::SHTYPE) {
         self.sh_type = ty.to_bytes();
     }

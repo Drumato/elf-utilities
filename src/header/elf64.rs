@@ -57,6 +57,12 @@ impl Ehdr64 {
     pub fn get_machine(&self) -> machine::ELFMACHINE {
         machine::ELFMACHINE::from(self.e_machine)
     }
+    pub fn get_shstrndx(&self) -> Elf64Half {
+        self.e_shstrndx
+    }
+    pub fn get_shnum(&self) -> Elf64Half {
+        self.e_shnum
+    }
 
     // setter
     pub fn set_phoff(&mut self, phoff: Elf64Off) {
