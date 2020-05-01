@@ -54,6 +54,10 @@ impl Default for Shdr64 {
 
 #[allow(dead_code)]
 impl Shdr64 {
+    pub fn size() -> Elf64Half {
+        0x40
+    }
+
     // getter
     pub fn get_type(&self) -> section_type::SHTYPE {
         section_type::SHTYPE::from(self.sh_type)
@@ -96,8 +100,53 @@ impl Shdr64 {
     pub fn set_flags(&mut self, flags: Elf64Xword) {
         self.sh_flags = flags;
     }
-
     pub fn set_addralign(&mut self, addralign: Elf64Xword) {
         self.sh_addralign = addralign;
+    }
+
+    pub fn to_le_bytes(&self) -> Vec<u8> {
+        let mut bytes: Vec<u8> = Vec::new();
+
+        for byte in self.sh_name.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.sh_type.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.sh_flags.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.sh_addr.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.sh_offset.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.sh_size.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.sh_link.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.sh_info.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.sh_addralign.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.sh_entsize.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        bytes
     }
 }

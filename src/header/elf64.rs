@@ -2,6 +2,7 @@ use crate::header::{class, data, elf_type, machine, osabi, version};
 use crate::*;
 
 pub const ELF_MAGIC_NUMBER: u128 = (0x7f45_4c46) << (12 * 8);
+
 #[repr(C)]
 pub struct Ehdr64 {
     e_ident: u128,
@@ -42,6 +43,10 @@ impl Default for Ehdr64 {
 }
 
 impl Ehdr64 {
+    pub fn size() -> Elf64Half {
+        0x40
+    }
+
     // getter
     pub fn get_identification(&self) -> u128 {
         self.e_ident
@@ -71,5 +76,67 @@ impl Ehdr64 {
     }
     pub fn set_machine(&mut self, e_machine: machine::ELFMACHINE) {
         self.e_machine = e_machine.to_bytes();
+    }
+
+    pub fn to_le_bytes(&self) -> Vec<u8> {
+        let mut bytes: Vec<u8> = Vec::new();
+
+        for byte in self.e_ident.to_be_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_type.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_machine.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_version.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_entry.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_phoff.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_shoff.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_flags.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_ehsize.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_phentsize.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_phnum.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_shentsize.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_shnum.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        for byte in self.e_shstrndx.to_le_bytes().to_vec() {
+            bytes.push(byte);
+        }
+
+        bytes
     }
 }

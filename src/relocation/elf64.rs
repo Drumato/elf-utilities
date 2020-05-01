@@ -19,6 +19,10 @@ impl Default for Rela64 {
 
 #[allow(dead_code)]
 impl Rela64 {
+    pub fn size() -> Elf64Xword {
+        24
+    }
+
     pub fn set_addend(&mut self, addend: Elf64Sxword) {
         self.r_addend = addend;
     }
