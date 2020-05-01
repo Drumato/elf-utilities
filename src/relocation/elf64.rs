@@ -23,6 +23,10 @@ impl Rela64 {
         24
     }
 
+    pub fn get_offset(&self) -> Elf64Addr {
+        self.r_offset
+    }
+
     pub fn set_addend(&mut self, addend: Elf64Sxword) {
         self.r_addend = addend;
     }
