@@ -25,16 +25,14 @@ impl ELF64 {
         let shoff = self.sum_section_sizes(header::Ehdr64::size() as u64);
         self.ehdr.set_shoff(shoff);
 
+        // セクションのオフセットを揃える
+        let file_offset = header::Ehdr64::size() as u64;
+        self.clean_sections_offset(file_offset);
+
         // セクション名を揃える
         let shstrndx = self.ehdr.get_shstrndx() as usize;
         let shnum = self.ehdr.get_shnum() as usize;
-        let name_count = self.sections[shstrndx]
-            .bytes
-            .iter()
-            .filter(|num| *num == &0x00)
-            .collect::<Vec<&u8>>()
-            .len()
-            - 1;
+        let name_count = shnum - 1;
 
         let mut sh_name = 1;
         for (idx, bb) in self.sections[shstrndx]
@@ -82,6 +80,17 @@ impl ELF64 {
 
     pub fn add_section(&mut self, sct: section::Section64) {
         self.sections.push(sct);
+    }
+
+    fn clean_sections_offset(&mut self, base: u64) {
+        let mut total = base;
+        for section in self.sections.iter_mut() {
+            let sh_offset = section.header.get_offset();
+            section.header.set_offset(sh_offset + total);
+
+            let sh_size = section.header.get_size();
+            total += sh_size;
+        }
     }
 
     fn sum_section_sizes(&self, base: u64) -> u64 {

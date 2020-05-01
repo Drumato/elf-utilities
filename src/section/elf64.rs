@@ -80,10 +80,16 @@ impl Shdr64 {
     pub fn get_addralign(&self) -> Elf64Xword {
         self.sh_addralign
     }
+    pub fn get_offset(&self) -> Elf64Off {
+        self.sh_offset
+    }
 
     // setter
     pub fn set_name(&mut self, name: Elf64Word) {
         self.sh_name = name;
+    }
+    pub fn set_offset(&mut self, offset: Elf64Off) {
+        self.sh_offset = offset;
     }
     pub fn set_type(&mut self, ty: section_type::SHTYPE) {
         self.sh_type = ty.to_bytes();
