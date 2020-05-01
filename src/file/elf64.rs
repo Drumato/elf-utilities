@@ -32,13 +32,12 @@ impl ELF64 {
         // セクション名を揃える
         let shstrndx = self.ehdr.get_shstrndx() as usize;
         let shnum = self.ehdr.get_shnum() as usize;
-        let name_count = shnum - 1;
 
         let mut sh_name = 1;
         for (idx, bb) in self.sections[shstrndx]
             .bytes
             .to_vec()
-            .splitn(name_count, |num| *num == 0x00)
+            .splitn(shnum, |num| *num == 0x00)
             .enumerate()
         {
             if idx == 0 || idx >= shnum {
