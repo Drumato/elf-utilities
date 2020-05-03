@@ -1,5 +1,7 @@
 use crate::*;
 
+pub const R_X86_64_PLT32: Elf64Xword = 4;
+
 #[repr(C)]
 pub struct Rela64 {
     r_offset: Elf64Addr,
