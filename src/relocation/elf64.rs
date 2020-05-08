@@ -1,5 +1,6 @@
 use crate::*;
 
+pub const R_X86_64_PC32: Elf64Xword = 2;
 pub const R_X86_64_PLT32: Elf64Xword = 4;
 
 #[repr(C)]
