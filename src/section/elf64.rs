@@ -59,8 +59,8 @@ impl Shdr64 {
     }
 
     // getter
-    pub fn get_type(&self) -> section_type::SHTYPE {
-        section_type::SHTYPE::from(self.sh_type)
+    pub fn get_type(&self) -> section_type::TYPE {
+        section_type::TYPE::from(self.sh_type)
     }
     pub fn get_link(&self) -> Elf64Word {
         self.sh_link
@@ -91,7 +91,7 @@ impl Shdr64 {
     pub fn set_offset(&mut self, offset: Elf64Off) {
         self.sh_offset = offset;
     }
-    pub fn set_type(&mut self, ty: section_type::SHTYPE) {
+    pub fn set_type(&mut self, ty: section_type::TYPE) {
         self.sh_type = ty.to_bytes();
     }
     pub fn set_size(&mut self, size: Elf64Xword) {

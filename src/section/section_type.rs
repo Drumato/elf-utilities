@@ -1,7 +1,7 @@
 use crate::*;
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum SHTYPE {
+pub enum TYPE {
     NULL,
     PROGBITS,
     SYMTAB,
@@ -18,7 +18,7 @@ pub enum SHTYPE {
     ANY(Elf64Word),
 }
 
-impl SHTYPE {
+impl TYPE {
     pub fn to_bytes(&self) -> Elf64Word {
         match self {
             Self::NULL => 0,
@@ -39,7 +39,7 @@ impl SHTYPE {
     }
 }
 
-impl From<Elf64Word> for SHTYPE {
+impl From<Elf64Word> for TYPE {
     fn from(bytes: Elf64Word) -> Self {
         match bytes {
             0 => Self::NULL,
