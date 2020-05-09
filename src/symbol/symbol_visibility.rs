@@ -1,3 +1,5 @@
+//! ELF symbol visibility.
+
 /// Symbol Visibilities.
 pub enum VISIBILITY {
     /// Default symbol visibility rules.

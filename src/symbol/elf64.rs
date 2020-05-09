@@ -1,3 +1,5 @@
+//! Type definitions for 64-bit ELF binaries.
+
 use crate::*;
 
 /* definitions for st_info(bind) */
@@ -53,11 +55,11 @@ pub struct Symbol64 {
     /// Symbol name index.
     st_name: Elf64Word,
 
-    /// Information that includes [symbol binds and symbol types](https://docs.rs/elf-utilities/0.1.26/elf_utilities/symbol/elf64/index.html#constants).
+    /// Information that includes [symbol binds and symbol types](https://docs.rs/elf-utilities/0.1.28/elf_utilities/symbol/elf64/index.html#constants).
     st_info: u8,
 
     /// Symbol's visibility.
-    /// See [symbol::VISIBILITY](https://docs.rs/elf-utilities/0.1.27/elf_utilities/symbol/symbol_visibility/enum.VISIBILITY.html).
+    /// See [symbol::VISIBILITY](https://docs.rs/elf-utilities/0.1.28/elf_utilities/symbol/symbol_visibility/enum.VISIBILITY.html).
     st_other: u8,
 
     /// A section table index that includes the symbol.
@@ -109,7 +111,7 @@ impl Symbol64 {
     }
 
     /// Set symbol's information to Symbol64
-    /// See [symbol::symbol_info](https://docs.rs/elf-utilities/0.1.27/elf_utilities/symbol/util/fn.symbol_info.html) for constructing symbol's information.
+    /// See [symbol::symbol_info](https://docs.rs/elf-utilities/0.1.28/elf_utilities/symbol/util/fn.symbol_info.html) for constructing symbol's information.
     ///
     /// # Examples
     ///
@@ -127,7 +129,7 @@ impl Symbol64 {
     }
 
     /// Set symbol's other value to Symbol64
-    /// See [symbol::VISIBILITY](https://docs.rs/elf-utilities/0.1.27/elf_utilities/symbol/symbol_visibility/enum.VISIBILITY.html) and [symbol::symbol_visibility](https://docs.rs/elf-utilities/0.1.27/elf_utilities/symbol/util/fn.symbol_visibility.html)
+    /// See [symbol::VISIBILITY](https://docs.rs/elf-utilities/0.1.28/elf_utilities/symbol/symbol_visibility/enum.VISIBILITY.html) and [symbol::symbol_visibility](https://docs.rs/elf-utilities/0.1.28/elf_utilities/symbol/util/fn.symbol_visibility.html)
     ///
     /// # Examples
     ///

@@ -1,3 +1,5 @@
+//! Type definitions for 64-bit ELF binaries.
+
 use crate::section::section_type;
 use crate::*;
 

@@ -1,3 +1,5 @@
+//! Type definitions for section header types.
+
 use crate::*;
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]

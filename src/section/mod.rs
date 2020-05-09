@@ -1,3 +1,5 @@
+//! ELF section and section header utilities.
+
 pub use elf64::*;
 pub use section_flag::*;
 pub use section_type::*;

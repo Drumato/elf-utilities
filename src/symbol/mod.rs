@@ -1,3 +1,5 @@
+//! ELF symbol utilities.
+
 pub use elf64::*;
 pub use symbol_visibility::*;
 pub use util::*;

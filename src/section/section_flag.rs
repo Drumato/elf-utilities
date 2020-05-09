@@ -1,3 +1,5 @@
+//! Type definitions for section header flags.
+
 use crate::*;
 
 /* definitions for sh_flags */
