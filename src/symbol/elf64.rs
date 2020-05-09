@@ -1,13 +1,53 @@
 use crate::*;
 
 /* definitions for st_info(bind) */
-pub const STB_LOCAL: u8 = 0; /* Local symbol */
-pub const STB_GLOBAL: u8 = 1; /* Global symbol */
+/// Local Symbol
+pub const STB_LOCAL: u8 = 0;
+/// Global Symbol
+pub const STB_GLOBAL: u8 = 1;
 
 /* definitions for st_info(type) */
-pub const STT_FUNC: u8 = 2; /* Symbol is a code object */
-pub const STT_SECTION: u8 = 3; /* Symbol is a code object */
+/// Code object
+pub const STT_FUNC: u8 = 2;
+/// Section
+pub const STT_SECTION: u8 = 3;
 
+/// Symbol64 is a entry of symbol table section.
+///
+/// Symbol64 はシンボルテーブルセクションのエントリである．
+/// ELF64で用いることを想定している．
+///
+///
+/// Defaultトレイトを実装しているので，
+/// `Default::default()` を呼び出すことで簡単にNULLシンボルを作成できる．
+///
+/// # Examples
+///
+/// ```
+/// use elf_utilities::symbol::Symbol64;
+/// let null_sym : Symbol64 = Default::default();
+///
+/// // Symbol64::new_null_symbol() のエイリアスでも作成可能．
+/// let null_sym2 : Symbol64 = Symbol64::new_null_symbol();
+///
+/// assert_eq!(null_sym, null_sym2);
+///
+/// ```
+///
+/// ELFファイルを生成する用途でこのライブラリを使用できるように，
+/// バイト列への変換もサポートしている．
+///
+/// # Examples
+///
+/// ```
+/// use elf_utilities::symbol::Symbol64;
+/// let null_sym : Symbol64 = Default::default();
+///
+/// // to_le_bytes() を利用してバイト列に変換できる．
+/// let sym_bytes = null_sym.to_le_bytes();
+/// assert_eq!(sym_bytes.len() as elf_utilities::Elf64Xword, Symbol64::size())
+/// ```
+#[derive(Eq, Ord, PartialOrd, PartialEq, Debug)]
 #[repr(C)]
 pub struct Symbol64 {
     st_name: Elf64Word,
@@ -36,7 +76,7 @@ impl Symbol64 {
     pub fn new_null_symbol() -> Self {
         Default::default()
     }
-    // each Symbol64 size for Shdr64.sh_entsize
+    /// size() provides Symbol64's size used by Shdr64.sh_entsize or else.
     pub fn size() -> Elf64Xword {
         24
     }
