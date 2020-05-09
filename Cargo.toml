@@ -8,6 +8,7 @@ description = "Utilities for parsing,generating,analyzing ELF"
 documentation = "https://docs.rs/elf-utilities"
 homepage = "https://github.com/Drumato/elf-utilities"
 repository = "https://github.com/Drumato/elf-utilities"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
