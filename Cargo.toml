@@ -1,10 +1,13 @@
 [package]
 name = "elf-utilities"
-version = "0.1.25"
+version = "0.1.26"
 authors = ["Drumato <drumatech109@gmail.com>"]
 edition = "2018"
 license = "MIT"
 description = "Utilities for parsing,generating,analyzing ELF"
+documentation = "https://docs.rs/elf-utilities"
+homepage = "https://github.com/Drumato/elf-utilities"
+repository = "https://github.com/Drumato/elf-utilities"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
