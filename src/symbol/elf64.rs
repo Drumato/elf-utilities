@@ -70,6 +70,9 @@ pub struct Symbol64 {
 
     /// Symbol's size.
     st_size: Elf64Xword,
+
+    /// option member for utilities.
+    symbol_name: Option<String>,
 }
 
 impl Default for Symbol64 {
@@ -81,6 +84,7 @@ impl Default for Symbol64 {
             st_shndx: 0,
             st_value: 0,
             st_size: 0,
+            symbol_name: None,
         }
     }
 }
@@ -93,6 +97,11 @@ impl Symbol64 {
     /// size() provides Symbol64's size used by Shdr64.sh_entsize or else.
     pub fn size() -> Elf64Xword {
         24
+    }
+
+    /// for comparison
+    pub fn set_symbol_name(&mut self, name: String) {
+        self.symbol_name = Some(name);
     }
 
     /// Set symbol name index to Symbol64

@@ -60,6 +60,11 @@ impl ELF64 {
         let mut header_binary = self.ehdr.to_le_bytes();
         file_binary.append(&mut header_binary);
 
+        for seg in self.segments.iter() {
+            let mut phdr_binary = seg.header.to_le_bytes();
+            file_binary.append(&mut phdr_binary);
+        }
+
         for sct in self.sections.iter() {
             let mut section_binary = sct.bytes.clone();
             file_binary.append(&mut section_binary);
@@ -69,30 +74,40 @@ impl ELF64 {
             let mut shdr_binary = sct.header.to_le_bytes();
             file_binary.append(&mut shdr_binary);
         }
-
-        for seg in self.segments.iter() {
-            let mut phdr_binary = seg.header.to_le_bytes();
-            file_binary.append(&mut phdr_binary);
-        }
-
         file_binary
     }
 
     pub fn section_number(&self) -> usize {
         self.sections.len()
     }
+    pub fn segment_number(&self) -> usize {
+        self.segments.len()
+    }
 
+    pub fn add_null_bytes_to(&mut self, section_index: usize, bytes_length: usize) {
+        let mut extra_bytes = vec![0x00; bytes_length];
+
+        self.sections[section_index].bytes.append(&mut extra_bytes);
+    }
     pub fn add_section(&mut self, sct: section::Section64) {
         self.sections.push(sct);
     }
     pub fn get_section(&self, name: String) -> Option<&section::Section64> {
-        for sct in self.sections.iter(){
+        for sct in self.sections.iter() {
             if sct.name == name {
                 return Some(sct);
             }
         }
 
         None
+    }
+
+    pub fn get_ehdr_as_mut(&mut self) -> &mut header::Ehdr64 {
+        &mut self.ehdr
+    }
+
+    pub fn all_section_size(&self) -> u64 {
+        self.sections.iter().map(|sct| sct.header.get_size()).sum()
     }
 
     pub fn add_segment(&mut self, seg: segment::Segment64) {
