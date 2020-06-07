@@ -5,14 +5,12 @@ use crate::*;
 use crate::segment::*;
 
 pub struct Segment64 {
-    pub name: String,
     pub header: Phdr64,
 }
 
 impl Segment64 {
-    pub fn new(name: String, header: Phdr64) -> Self {
+    pub fn new(header: Phdr64) -> Self {
         Self {
-            name,
             header,
         }
     }

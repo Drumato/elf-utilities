@@ -85,6 +85,15 @@ impl ELF64 {
     pub fn add_section(&mut self, sct: section::Section64) {
         self.sections.push(sct);
     }
+    pub fn get_section(&self, name: String) -> Option<&section::Section64> {
+        for sct in self.sections.iter(){
+            if sct.name == name {
+                return Some(sct);
+            }
+        }
+
+        None
+    }
 
     pub fn add_segment(&mut self, seg: segment::Segment64) {
         self.segments.push(seg);
