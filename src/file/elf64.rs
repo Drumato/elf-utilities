@@ -1,11 +1,12 @@
 use crate::header;
 use crate::section;
+use crate::segment;
 
 #[repr(C)]
 pub struct ELF64 {
     ehdr: header::Ehdr64,
     sections: Vec<section::Section64>,
-    // phdrs: Vec<program::Phdr64>,
+    segments: Vec<segment::Segment64>,
 }
 
 impl ELF64 {
@@ -13,6 +14,7 @@ impl ELF64 {
         Self {
             ehdr: elf_header,
             sections: Vec::new(),
+            segments: Vec::new(),
         }
     }
 
@@ -68,7 +70,10 @@ impl ELF64 {
             file_binary.append(&mut shdr_binary);
         }
 
-        // TODO: Phdrs
+        for seg in self.segments.iter() {
+            let mut phdr_binary = seg.header.to_le_bytes();
+            file_binary.append(&mut phdr_binary);
+        }
 
         file_binary
     }
@@ -79,6 +84,10 @@ impl ELF64 {
 
     pub fn add_section(&mut self, sct: section::Section64) {
         self.sections.push(sct);
+    }
+
+    pub fn add_segment(&mut self, seg: segment::Segment64) {
+        self.segments.push(seg);
     }
 
     fn clean_sections_offset(&mut self, base: u64) {

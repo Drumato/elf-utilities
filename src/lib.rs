@@ -3,6 +3,7 @@ pub mod header;
 pub mod relocation;
 pub mod section;
 pub mod symbol;
+pub mod segment;
 
 #[allow(unused)]
 /* Type for a 16-bit quantity.  */
