@@ -13,6 +13,9 @@ pub struct Section64 {
 
     /// for symbol table
     pub symbols: Option<Vec<symbol::Symbol64>>,
+
+    /// for rela symbol table
+    pub rela_symbols: Option<Vec<relocation::Rela64>>,
 }
 
 impl Section64 {
@@ -22,6 +25,37 @@ impl Section64 {
             header: shdr,
             bytes: None,
             symbols: None,
+            rela_symbols: None,
+        }
+    }
+
+    pub fn write_byte_to_index(&mut self, byte: u8, idx: usize) {
+        if let Some(ref mut bytes) = self.bytes {
+            bytes[idx] = byte;
+        }
+    }
+
+    /// create binary without header
+    pub fn to_le_bytes(&self) -> Vec<u8> {
+        match self.header.get_type() {
+            section_type::TYPE::SYMTAB => {
+                let mut bytes = Vec::new();
+
+                for sym in self.symbols.as_ref().unwrap().iter() {
+                    bytes.append(&mut sym.to_le_bytes());
+                }
+                bytes
+            }
+            section_type::TYPE::RELA => {
+                let mut bytes = Vec::new();
+
+                for rela in self.rela_symbols.as_ref().unwrap().iter() {
+                    bytes.append(&mut rela.to_le_bytes());
+                }
+
+                bytes
+            }
+            _ => self.bytes.as_ref().unwrap().clone()
         }
     }
 

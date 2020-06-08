@@ -65,17 +65,7 @@ impl ELF64 {
 
         for sct in self.sections.iter() {
             // セクションタイプによって処理を変える
-            let mut section_binary = match sct.header.get_type() {
-                section::TYPE::SYMTAB => {
-                    let mut bytes = Vec::new();
-
-                    for sym in sct.symbols.as_ref().unwrap().iter() {
-                        bytes.append(&mut sym.to_le_bytes());
-                    }
-                    bytes
-                }
-                _ => sct.bytes.as_ref().unwrap().clone(),
-            };
+            let mut section_binary = sct.to_le_bytes();
             file_binary.append(&mut section_binary);
         }
 

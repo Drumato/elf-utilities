@@ -3,6 +3,7 @@ use crate::*;
 pub const R_X86_64_PC32: Elf64Xword = 2;
 pub const R_X86_64_PLT32: Elf64Xword = 4;
 
+#[derive(Clone)]
 #[repr(C)]
 pub struct Rela64 {
     r_offset: Elf64Addr,
@@ -24,6 +25,9 @@ impl Default for Rela64 {
 impl Rela64 {
     pub fn size() -> Elf64Xword {
         24
+    }
+    pub fn bind(&self) -> Elf64Xword {
+        self.r_info >> 32
     }
 
     pub fn get_offset(&self) -> Elf64Addr {
