@@ -107,6 +107,9 @@ impl Ehdr64 {
     pub fn set_machine(&mut self, e_machine: machine::ELFMACHINE) {
         self.e_machine = e_machine.to_bytes();
     }
+    pub fn set_entry(&mut self, entry: Elf64Addr) {
+        self.e_entry = entry;
+    }
 
     pub fn to_le_bytes(&self) -> Vec<u8> {
         let mut bytes: Vec<u8> = Vec::new();
