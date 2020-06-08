@@ -25,7 +25,9 @@ impl Section64 {
     }
 
     pub fn new_null_section() -> Self {
-        Self::new(String::new(), Default::default())
+        let mut null_section = Self::new(String::new(), Default::default());
+        null_section.bytes = Some(Vec::new());
+        null_section
     }
 }
 
