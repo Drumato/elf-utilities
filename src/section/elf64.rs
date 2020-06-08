@@ -158,6 +158,9 @@ impl Shdr64 {
     pub fn set_addralign(&mut self, addralign: Elf64Xword) {
         self.sh_addralign = addralign;
     }
+    pub fn set_addr(&mut self, addr: Elf64Addr) {
+        self.sh_addr = addr;
+    }
 
     pub fn to_le_bytes(&self) -> Vec<u8> {
         let mut bytes: Vec<u8> = Vec::new();

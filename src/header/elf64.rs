@@ -63,6 +63,9 @@ impl Ehdr64 {
     pub fn get_shnum(&self) -> Elf64Half {
         self.e_shnum
     }
+    pub fn get_entry(&self) -> Elf64Addr {
+        self.e_entry
+    }
 
     // setter
     pub fn set_phoff(&mut self, phoff: Elf64Off) {
