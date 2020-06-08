@@ -49,7 +49,7 @@ pub const STT_SECTION: u8 = 3;
 /// let sym_bytes = null_sym.to_le_bytes();
 /// assert_eq!(sym_bytes.len() as elf_utilities::Elf64Xword, Symbol64::size())
 /// ```
-#[derive(Eq, Ord, PartialOrd, PartialEq, Debug)]
+#[derive(Eq, Ord, PartialOrd, PartialEq, Debug, Clone)]
 #[repr(C)]
 pub struct Symbol64 {
     /// Symbol name index.

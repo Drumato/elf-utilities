@@ -112,6 +112,16 @@ impl ELF64 {
         None
     }
 
+    pub fn get_section_as_mut(&mut self, name: String) -> Option<&mut section::Section64>{
+        for sct in self.sections.iter_mut() {
+            if sct.name == name {
+                return Some(sct);
+            }
+        }
+
+        None
+    }
+
     pub fn get_ehdr_as_mut(&mut self) -> &mut header::Ehdr64 {
         &mut self.ehdr
     }
