@@ -104,6 +104,14 @@ impl Symbol64 {
         self.symbol_name = Some(name);
     }
 
+    pub fn compare_symbol_name(&self, other: String)  -> bool {
+        if self.symbol_name.is_none(){
+            return false;
+        }
+
+        self.symbol_name.as_ref().unwrap() == &other
+    }
+
     /// Set symbol name index to Symbol64
     ///
     /// # Examples

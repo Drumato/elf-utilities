@@ -6,7 +6,12 @@ use crate::*;
 pub struct Section64 {
     pub name: String,
     pub header: Shdr64,
-    pub bytes: Vec<u8>,
+
+    /// for normal section
+    pub bytes: Option<Vec<u8>>,
+
+    /// for symbol table
+    pub symbols: Option<Vec<symbol::Symbol64>>,
 }
 
 impl Section64 {
@@ -14,7 +19,8 @@ impl Section64 {
         Self {
             name: section_name,
             header: shdr,
-            bytes: Vec::new(),
+            bytes: None,
+            symbols: None,
         }
     }
 

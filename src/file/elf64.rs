@@ -1,6 +1,4 @@
-use crate::header;
-use crate::section;
-use crate::segment;
+use crate::{header, section, segment};
 
 #[repr(C)]
 pub struct ELF64 {
@@ -24,7 +22,7 @@ impl ELF64 {
         self.ehdr.set_shstrndx(self.sections.len() as u16 - 1);
 
         self.ehdr.set_ehsize(header::Ehdr64::size());
-        let shoff = self.sum_section_sizes(header::Ehdr64::size() as u64);
+        let shoff = header::Ehdr64::size() as u64 + self.all_section_size();
         self.ehdr.set_shoff(shoff);
 
         // セクションのオフセットを揃える
@@ -37,7 +35,7 @@ impl ELF64 {
 
         let mut sh_name = 1;
         for (idx, bb) in self.sections[shstrndx]
-            .bytes
+            .bytes.as_ref().unwrap()
             .to_vec()
             .splitn(shnum, |num| *num == 0x00)
             .enumerate()
@@ -66,7 +64,18 @@ impl ELF64 {
         }
 
         for sct in self.sections.iter() {
-            let mut section_binary = sct.bytes.clone();
+            // セクションタイプによって処理を変える
+            let mut section_binary = match sct.header.get_type() {
+                section::TYPE::SYMTAB => {
+                    let mut bytes = Vec::new();
+
+                    for sym in sct.symbols.as_ref().unwrap().iter() {
+                        bytes.append(&mut sym.to_le_bytes());
+                    }
+                    bytes
+                }
+                _ => sct.bytes.as_ref().unwrap().clone(),
+            };
             file_binary.append(&mut section_binary);
         }
 
@@ -87,11 +96,12 @@ impl ELF64 {
     pub fn add_null_bytes_to(&mut self, section_index: usize, bytes_length: usize) {
         let mut extra_bytes = vec![0x00; bytes_length];
 
-        self.sections[section_index].bytes.append(&mut extra_bytes);
+        self.sections[section_index].bytes.as_mut().unwrap().append(&mut extra_bytes);
     }
     pub fn add_section(&mut self, sct: section::Section64) {
         self.sections.push(sct);
     }
+
     pub fn get_section(&self, name: String) -> Option<&section::Section64> {
         for sct in self.sections.iter() {
             if sct.name == name {
@@ -123,11 +133,5 @@ impl ELF64 {
             let sh_size = section.header.get_size();
             total += sh_size;
         }
-    }
-
-    fn sum_section_sizes(&self, base: u64) -> u64 {
-        self.sections
-            .iter()
-            .fold(base, |sum, section| sum + section.bytes.len() as u64)
     }
 }
