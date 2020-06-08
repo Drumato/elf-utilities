@@ -16,6 +16,10 @@ impl ELF64 {
         }
     }
 
+    pub fn iter_sections_as_mut(&mut self) -> std::slice::IterMut<section::Section64> {
+        self.sections.iter_mut()
+    }
+
     pub fn condition(&mut self) {
         self.ehdr.set_shentsize(section::Shdr64::size());
         self.ehdr.set_shnum(self.sections.len() as u16);
