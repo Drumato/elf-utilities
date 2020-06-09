@@ -112,6 +112,14 @@ impl Symbol64 {
         self.symbol_name.as_ref().unwrap() == &other
     }
 
+    pub fn get_type(&self) -> u8 {
+        self.st_info & 0xf
+    }
+
+    pub fn get_bind(&self) -> u8 {
+        self.st_info >> 4
+    }
+
     /// Set symbol name index to Symbol64
     ///
     /// # Examples
