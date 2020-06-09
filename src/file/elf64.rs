@@ -16,6 +16,10 @@ impl ELF64 {
         }
     }
 
+    pub fn get_sections(&self) -> Vec<section::Section64> {
+        self.sections.clone()
+    }
+
     pub fn iter_sections_as_mut(&mut self) -> std::slice::IterMut<section::Section64> {
         self.sections.iter_mut()
     }
@@ -106,7 +110,7 @@ impl ELF64 {
         None
     }
 
-    pub fn get_section_as_mut(&mut self, name: String) -> Option<&mut section::Section64>{
+    pub fn get_section_as_mut(&mut self, name: String) -> Option<&mut section::Section64> {
         for sct in self.sections.iter_mut() {
             if sct.name == name {
                 return Some(sct);
