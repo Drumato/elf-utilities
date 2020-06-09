@@ -133,6 +133,9 @@ impl Shdr64 {
     pub fn get_offset(&self) -> Elf64Off {
         self.sh_offset
     }
+    pub fn get_addr(&self) -> Elf64Addr {
+        self.sh_addr
+    }
 
     // setter
     pub fn set_name(&mut self, name: Elf64Word) {
