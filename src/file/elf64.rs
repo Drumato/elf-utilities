@@ -94,6 +94,9 @@ impl ELF64 {
     pub fn add_null_bytes_to(&mut self, section_index: usize, bytes_length: usize) {
         let mut extra_bytes = vec![0x00; bytes_length];
 
+        if self.sections[section_index].bytes.is_none(){
+            self.sections[section_index].bytes = Some(Vec::new());
+        }
         self.sections[section_index].bytes.as_mut().unwrap().append(&mut extra_bytes);
     }
     pub fn add_section(&mut self, sct: section::Section64) {

@@ -53,6 +53,10 @@ impl Section64 {
                     bytes.append(&mut rela.to_le_bytes());
                 }
 
+                if let Some(bts) = &self.bytes {
+                    bytes.append(&mut bts.clone());
+                }
+
                 bytes
             }
             _ => self.bytes.as_ref().unwrap().clone()
