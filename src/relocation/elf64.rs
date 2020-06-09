@@ -26,8 +26,11 @@ impl Rela64 {
     pub fn size() -> Elf64Xword {
         24
     }
-    pub fn bind(&self) -> Elf64Xword {
+    pub fn get_sym(&self) -> Elf64Xword {
         self.r_info >> 32
+    }
+    pub fn get_type(&self) -> Elf64Xword{
+        self.r_info & 0xffffffff
     }
 
     pub fn get_offset(&self) -> Elf64Addr {
