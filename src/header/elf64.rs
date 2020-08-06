@@ -3,6 +3,7 @@ use crate::*;
 
 pub const ELF_MAGIC_NUMBER: u128 = (0x7f45_4c46) << (12 * 8);
 
+#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq)]
 #[repr(C)]
 pub struct Ehdr64 {
     e_ident: u128,

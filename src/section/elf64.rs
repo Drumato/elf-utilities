@@ -3,7 +3,7 @@
 use crate::section::section_type;
 use crate::*;
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct Section64 {
     pub name: String,
     pub header: Shdr64,
@@ -70,7 +70,7 @@ impl Section64 {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq)]
 #[repr(C)]
 pub struct Shdr64 {
     sh_name: Elf64Word,

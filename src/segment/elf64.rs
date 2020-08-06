@@ -4,6 +4,7 @@ use crate::*;
 
 use crate::segment::*;
 
+#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct Segment64 {
     pub header: Phdr64,
 }
@@ -17,6 +18,7 @@ impl Segment64 {
 }
 
 #[repr(C)]
+#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct Phdr64 {
     /// Segment type
     p_type: Elf64Word,

@@ -1,6 +1,6 @@
 [package]
 name = "elf-utilities"
-version = "0.1.47"
+version = "0.1.48"
 authors = ["Drumato <drumatech109@gmail.com>"]
 edition = "2018"
 license = "MIT"
