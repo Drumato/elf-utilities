@@ -6,7 +6,7 @@ pub const ELF_MAGIC_NUMBER: u128 = 0x464c_457f;
 #[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Ehdr64 {
-    e_ident: u128,
+    e_ident: [u8; 16],
     e_type: Elf64Half,
     e_machine: Elf64Half,
     e_version: Elf64Word,
@@ -25,7 +25,10 @@ pub struct Ehdr64 {
 impl Default for Ehdr64 {
     fn default() -> Self {
         Self {
-            e_ident: ELF_MAGIC_NUMBER,
+            e_ident: [
+                0x7f, 0x45, 0x4c, 0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00,
+            ],
             e_type: 0,
             e_machine: 0,
             e_version: 0,
@@ -49,7 +52,7 @@ impl Ehdr64 {
     }
 
     // getter
-    pub fn get_identification(&self) -> u128 {
+    pub fn get_identification(&self) -> [u8; 16] {
         self.e_ident
     }
     pub fn get_elf_type(&self) -> elf_type::ELFTYPE {
@@ -93,17 +96,17 @@ impl Ehdr64 {
     pub fn set_shstrndx(&mut self, shstrndx: Elf64Half) {
         self.e_shstrndx = shstrndx;
     }
-    pub fn set_class(&mut self, class: class::ELFCLASS) {
-        self.e_ident |= class.to_identifier();
+    pub fn set_class(&mut self, c: class::ELFCLASS) {
+        self.e_ident[class::ELFCLASS::INDEX] = c.to_identifier();
     }
-    pub fn set_data(&mut self, data: data::ELFDATA) {
-        self.e_ident |= data.to_identifier();
+    pub fn set_data(&mut self, d: data::ELFDATA) {
+        self.e_ident[data::ELFDATA::INDEX] = d.to_identifier();
     }
-    pub fn set_version(&mut self, version: version::ELFVERSION) {
-        self.e_ident |= version.to_identifier();
+    pub fn set_version(&mut self, v: version::ELFVERSION) {
+        self.e_ident[version::ELFVERSION::INDEX] = v.to_identifier();
     }
-    pub fn set_osabi(&mut self, osabi: osabi::ELFOSABI) {
-        self.e_ident |= osabi.to_identifier();
+    pub fn set_osabi(&mut self, o: osabi::ELFOSABI) {
+        self.e_ident[osabi::ELFOSABI::INDEX] = o.to_identifier();
     }
     pub fn set_elf_type(&mut self, e_type: elf_type::ELFTYPE) {
         self.e_type = e_type.to_bytes();
@@ -126,14 +129,14 @@ impl Ehdr64 {
     /// assert_eq!(
     ///     vec![
     ///         0x7f, 0x45, 0x4c, 0x46, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-    ///     ], 
+    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ///     ],
     ///     null_ehdr.to_le_bytes()
     /// );
     /// ```

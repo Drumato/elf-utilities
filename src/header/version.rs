@@ -7,14 +7,12 @@ pub enum ELFVERSION {
 }
 
 impl ELFVERSION {
-    pub fn to_identifier(&self) -> u128 {
-        let byte = match self {
+    pub const INDEX: usize = 6;
+
+    pub fn to_identifier(&self) -> u8 {
+        match self {
             Self::VERSIONCURRENT => 1,
             Self::ANY(c) => *c,
-        };
-        Self::shift_position(byte)
-    }
-    fn shift_position(byte: u8) -> u128 {
-        (byte as u128) << 72
+        }
     }
 }

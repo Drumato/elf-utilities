@@ -35,8 +35,10 @@ pub enum ELFOSABI {
 }
 
 impl ELFOSABI {
-    pub fn to_identifier(&self) -> u128 {
-        let byte = match self {
+    pub const INDEX: usize = 7;
+
+    pub fn to_identifier(&self) -> u8 {
+        match self {
             Self::NONE | Self::SYSV => 0,
             Self::HPUX => 1,
             Self::NETBSD => 2,
@@ -53,10 +55,6 @@ impl ELFOSABI {
             Self::ARM => 97,
             Self::STANDALONE => 255,
             Self::ANY(c) => *c,
-        };
-        Self::shift_position(byte)
-    }
-    fn shift_position(byte: u8) -> u128 {
-        (byte as u128) << 64
+        }
     }
 }

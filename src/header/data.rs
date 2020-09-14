@@ -12,17 +12,14 @@ pub enum ELFDATA {
 }
 
 impl ELFDATA {
-    pub fn to_identifier(&self) -> u128 {
-        let byte = match self {
+    pub const INDEX: usize = 5;
+    pub fn to_identifier(&self) -> u8 {
+        match self {
             Self::DATANONE => 0,
             Self::DATA2LSB => 1,
             Self::DATA2MSB => 2,
             Self::DATA2NUM => 3,
             Self::ANY(c) => *c,
-        };
-        Self::shift_position(byte)
-    }
-    fn shift_position(byte: u8) -> u128 {
-        (byte as u128) << 80
+        }
     }
 }
