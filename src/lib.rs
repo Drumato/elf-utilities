@@ -81,11 +81,6 @@ mod elf_header_tests {
         ehdr.set_version(header::ELFVERSION::VERSIONCURRENT);
         ehdr.set_osabi(header::ELFOSABI::SYSV);
 
-        assert_eq!(
-            ehdr.get_identification(),
-            0x7f454c46020101000000000000000000
-        );
-
         ehdr.set_elf_type(header::ELFTYPE::EXEC);
         assert_eq!(ehdr.get_elf_type(), header::ELFTYPE::EXEC);
     }
