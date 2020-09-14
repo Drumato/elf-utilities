@@ -1,4 +1,6 @@
 use crate::{header, section, segment};
+use std::io::{BufWriter, Write};
+use std::os::unix::fs::OpenOptionsExt;
 
 #[repr(C)]
 pub struct ELF64 {
@@ -153,5 +155,37 @@ impl ELF64 {
             let sh_size = section.header.get_size();
             total += sh_size;
         }
+    }
+}
+
+pub struct ELF64Dumper {
+    file: ELF64,
+    permission: u32,
+}
+
+impl ELF64Dumper {
+    pub fn new(f: ELF64, perm: u32) -> Self {
+        Self {
+            file: f,
+            permission: perm,
+        }
+    }
+
+    pub fn generate_elf_file(
+        &self,
+        output_filename: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = self.file.to_le_bytes();
+
+        let file = std::fs::OpenOptions::new()
+            .create(true)
+            .read(true)
+            .write(true)
+            .mode(self.permission)
+            .open(output_filename)?;
+        let mut writer = BufWriter::new(file);
+        writer.write_all(&bytes)?;
+        writer.flush()?;
+        Ok(())
     }
 }
