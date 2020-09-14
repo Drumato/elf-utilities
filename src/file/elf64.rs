@@ -159,7 +159,7 @@ impl ELF64 {
 }
 
 pub struct ELF64Dumper {
-    file: ELF64,
+    pub file: ELF64,
     permission: u32,
 }
 
