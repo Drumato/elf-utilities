@@ -26,7 +26,6 @@ pub enum TYPE {
     ANY(Elf64Word),
 }
 
-
 impl TYPE {
     pub fn to_bytes(&self) -> Elf64Word {
         match self {

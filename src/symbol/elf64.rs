@@ -104,8 +104,8 @@ impl Symbol64 {
         self.symbol_name = Some(name);
     }
 
-    pub fn compare_symbol_name(&self, other: String)  -> bool {
-        if self.symbol_name.is_none(){
+    pub fn compare_symbol_name(&self, other: String) -> bool {
+        if self.symbol_name.is_none() {
             return false;
         }
 

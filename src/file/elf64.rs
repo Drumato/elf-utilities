@@ -15,6 +15,9 @@ impl ELF64 {
             segments: Vec::new(),
         }
     }
+    pub fn set_segments(&mut self, segments: Vec<segment::Segment64>) {
+        self.segments = segments;
+    }
 
     pub fn get_sections(&self) -> Vec<section::Section64> {
         self.sections.clone()
@@ -43,7 +46,9 @@ impl ELF64 {
 
         let mut sh_name = 1;
         for (idx, bb) in self.sections[shstrndx]
-            .bytes.as_ref().unwrap()
+            .bytes
+            .as_ref()
+            .unwrap()
             .to_vec()
             .splitn(shnum, |num| *num == 0x00)
             .enumerate()
@@ -94,10 +99,14 @@ impl ELF64 {
     pub fn add_null_bytes_to(&mut self, section_index: usize, bytes_length: usize) {
         let mut extra_bytes = vec![0x00; bytes_length];
 
-        if self.sections[section_index].bytes.is_none(){
+        if self.sections[section_index].bytes.is_none() {
             self.sections[section_index].bytes = Some(Vec::new());
         }
-        self.sections[section_index].bytes.as_mut().unwrap().append(&mut extra_bytes);
+        self.sections[section_index]
+            .bytes
+            .as_mut()
+            .unwrap()
+            .append(&mut extra_bytes);
     }
     pub fn add_section(&mut self, sct: section::Section64) {
         self.sections.push(sct);

@@ -11,9 +11,7 @@ pub struct Segment64 {
 
 impl Segment64 {
     pub fn new(header: Phdr64) -> Self {
-        Self {
-            header,
-        }
+        Self { header }
     }
 }
 
@@ -88,7 +86,6 @@ impl Phdr64 {
     pub fn set_type(&mut self, ptype: segment_type::TYPE) {
         self.p_type = ptype.to_bytes();
     }
-
 
     /// # Examples
     ///

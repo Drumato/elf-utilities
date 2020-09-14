@@ -59,7 +59,7 @@ impl Section64 {
 
                 bytes
             }
-            _ => self.bytes.as_ref().unwrap().clone()
+            _ => self.bytes.as_ref().unwrap().clone(),
         }
     }
 
