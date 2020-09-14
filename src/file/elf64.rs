@@ -17,11 +17,45 @@ impl ELF64 {
             segments: Vec::new(),
         }
     }
+
+    /// get section index if predicate returns true.
+    pub fn first_shidx_by<P>(&self, predicate: P) -> Option<usize>
+    where
+        P: Fn(&section::Section64) -> bool,
+    {
+        for (i, sct) in self.sections.iter().enumerate() {
+            if predicate(sct) {
+                return Some(i);
+            }
+        }
+
+        None
+    }
+    /// get a section if predicate returns true.
+    pub fn first_section_by<P>(&self, predicate: P) -> Option<&section::Section64>
+    where
+        P: Fn(&section::Section64) -> bool,
+    {
+        match self.first_shidx_by(predicate) {
+            Some(idx) => Some(&self.sections[idx]),
+            None => None,
+        }
+    }
+    /// get a mutable section if predicate returns true.
+    pub fn first_mut_section_by<P>(&mut self, predicate: P) -> Option<&mut section::Section64>
+    where
+        P: Fn(&section::Section64) -> bool,
+    {
+        match self.first_shidx_by(predicate) {
+            Some(idx) => Some(&mut self.sections[idx]),
+            None => None,
+        }
+    }
     pub fn set_segments(&mut self, segments: Vec<segment::Segment64>) {
         self.segments = segments;
     }
 
-    pub fn get_sections(&self) -> Vec<section::Section64> {
+    pub fn clone_sections(&self) -> Vec<section::Section64> {
         self.sections.clone()
     }
 
@@ -97,51 +131,15 @@ impl ELF64 {
     pub fn segment_number(&self) -> usize {
         self.segments.len()
     }
-
-    pub fn add_null_bytes_to(&mut self, section_index: usize, bytes_length: usize) {
-        let mut extra_bytes = vec![0x00; bytes_length];
-
-        if self.sections[section_index].bytes.is_none() {
-            self.sections[section_index].bytes = Some(Vec::new());
-        }
-        self.sections[section_index]
-            .bytes
-            .as_mut()
-            .unwrap()
-            .append(&mut extra_bytes);
-    }
     pub fn add_section(&mut self, sct: section::Section64) {
         self.sections.push(sct);
     }
-
-    pub fn get_section(&self, name: String) -> Option<&section::Section64> {
-        for sct in self.sections.iter() {
-            if sct.name == name {
-                return Some(sct);
-            }
-        }
-
-        None
-    }
-
-    pub fn get_section_as_mut(&mut self, name: String) -> Option<&mut section::Section64> {
-        for sct in self.sections.iter_mut() {
-            if sct.name == name {
-                return Some(sct);
-            }
-        }
-
-        None
-    }
-
     pub fn get_ehdr_as_mut(&mut self) -> &mut header::Ehdr64 {
         &mut self.ehdr
     }
-
     pub fn all_section_size(&self) -> u64 {
         self.sections.iter().map(|sct| sct.header.get_size()).sum()
     }
-
     pub fn add_segment(&mut self, seg: segment::Segment64) {
         self.segments.push(seg);
     }

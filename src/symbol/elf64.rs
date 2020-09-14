@@ -1,6 +1,7 @@
 //! Type definitions for 64-bit ELF binaries.
 
 use crate::*;
+use serde::{Deserialize, Serialize};
 
 /* definitions for st_info(bind) */
 /// Local Symbol
@@ -47,9 +48,9 @@ pub const STT_SECTION: u8 = 3;
 ///
 /// // to_le_bytes() を利用してバイト列に変換できる．
 /// let sym_bytes = null_sym.to_le_bytes();
-/// assert_eq!(sym_bytes.len() as elf_utilities::Elf64Xword, Symbol64::size())
+/// assert_eq!(Symbol64::size(),sym_bytes.len() as elf_utilities::Elf64Xword)
 /// ```
-#[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Symbol64 {
     /// Symbol name index.
@@ -72,6 +73,7 @@ pub struct Symbol64 {
     st_size: Elf64Xword,
 
     /// option member for utilities.
+    #[serde(skip_serializing)]
     symbol_name: Option<String>,
 }
 
@@ -99,17 +101,16 @@ impl Symbol64 {
         24
     }
 
-    /// for comparison
+    /// for utilities
     pub fn set_symbol_name(&mut self, name: String) {
         self.symbol_name = Some(name);
     }
 
-    pub fn compare_symbol_name(&self, other: String) -> bool {
-        if self.symbol_name.is_none() {
-            return false;
-        }
-
-        self.symbol_name.as_ref().unwrap() == &other
+    pub fn compare_by<P>(&self, predicate: P) -> bool
+    where
+        P: Fn(&Self) -> bool,
+    {
+        predicate(self)
     }
 
     pub fn get_type(&self) -> u8 {
@@ -256,32 +257,6 @@ impl Symbol64 {
     /// assert_eq!([0].repeat(Symbol64::size() as usize), null_sym.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
-        let mut bytes: Vec<u8> = Vec::new();
-
-        for byte in self.st_name.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.st_info.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.st_other.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.st_shndx.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.st_value.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.st_size.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        bytes
+        bincode::serialize(self).unwrap()
     }
 }

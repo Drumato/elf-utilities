@@ -3,8 +3,9 @@
 use crate::*;
 
 use crate::segment::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Segment64 {
     pub header: Phdr64,
 }
@@ -16,7 +17,7 @@ impl Segment64 {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Phdr64 {
     /// Segment type
     p_type: Elf64Word,
@@ -124,41 +125,17 @@ impl Phdr64 {
         self.p_align = align;
     }
 
+    /// Create Vec<u8> from this.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use elf_utilities::segment::Phdr64;
+    /// let null_phdr : Phdr64 = Default::default();
+    ///
+    /// assert_eq!([0].repeat(Phdr64::size() as usize), null_phdr.to_le_bytes());
+    /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
-        let mut bytes: Vec<u8> = Vec::new();
-
-        for byte in self.p_type.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.p_flags.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.p_offset.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.p_vaddr.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.p_paddr.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.p_filesz.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.p_memsz.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.p_align.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        bytes
+        bincode::serialize(self).unwrap()
     }
 }

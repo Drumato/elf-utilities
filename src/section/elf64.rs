@@ -3,7 +3,9 @@
 use crate::section::section_type;
 use crate::*;
 
-#[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Section64 {
     pub name: String,
     pub header: Shdr64,
@@ -70,7 +72,7 @@ impl Section64 {
     }
 }
 
-#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Shdr64 {
     sh_name: Elf64Word,
@@ -169,49 +171,17 @@ impl Shdr64 {
         self.sh_addr = addr;
     }
 
+    /// Create Vec<u8> from this.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use elf_utilities::section::Shdr64;
+    /// let null_sct : Shdr64 = Default::default();
+    ///
+    /// assert_eq!([0].repeat(Shdr64::size() as usize), null_sct.to_le_bytes());
+    /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
-        let mut bytes: Vec<u8> = Vec::new();
-
-        for byte in self.sh_name.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.sh_type.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.sh_flags.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.sh_addr.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.sh_offset.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.sh_size.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.sh_link.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.sh_info.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.sh_addralign.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        for byte in self.sh_entsize.to_le_bytes().to_vec() {
-            bytes.push(byte);
-        }
-
-        bytes
+        bincode::serialize(self).unwrap()
     }
 }
