@@ -246,6 +246,10 @@ impl Symbol64 {
         self.st_size
     }
 
+    pub fn get_symbol_name(&self) -> Option<String> {
+        self.symbol_name.clone()
+    }
+
     /// Create Vec<u8> from Symbol64's each fields.
     ///
     /// # Examples
