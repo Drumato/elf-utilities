@@ -18,6 +18,13 @@ impl ELF64 {
         }
     }
 
+    pub fn get_section_with_idx(&self, idx: usize) -> &section::Section64{
+        &self.sections[idx]
+    } 
+    pub fn get_mut_section_with_idx(&mut self, idx:usize) -> &mut section::Section64{
+        &mut self.sections[idx]
+    } 
+
     /// get section index if predicate returns true.
     pub fn first_shidx_by<P>(&self, predicate: P) -> Option<usize>
     where
