@@ -55,6 +55,9 @@ impl Ehdr64 {
     pub fn get_identification(&self) -> [u8; 16] {
         self.e_ident
     }
+    pub fn get_class(&self) -> class::ELFCLASS {
+        class::ELFCLASS::from(self.e_ident[data::ELFDATA::INDEX])
+    }
     pub fn get_elf_type(&self) -> elf_type::ELFTYPE {
         elf_type::ELFTYPE::from(self.e_type)
     }
@@ -67,8 +70,14 @@ impl Ehdr64 {
     pub fn get_shnum(&self) -> Elf64Half {
         self.e_shnum
     }
+    pub fn get_shoff(&self) -> Elf64Off {
+        self.e_shoff
+    }
     pub fn get_entry(&self) -> Elf64Addr {
         self.e_entry
+    }
+    pub fn get_phnum(&self) -> Elf64Half {
+        self.e_phnum
     }
 
     // setter

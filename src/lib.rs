@@ -1,5 +1,6 @@
 pub mod file;
 pub mod header;
+pub mod parser;
 pub mod relocation;
 pub mod section;
 pub mod segment;

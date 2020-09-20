@@ -18,12 +18,12 @@ impl ELF64 {
         }
     }
 
-    pub fn get_section_with_idx(&self, idx: usize) -> &section::Section64{
+    pub fn get_section_with_idx(&self, idx: usize) -> &section::Section64 {
         &self.sections[idx]
-    } 
-    pub fn get_mut_section_with_idx(&mut self, idx:usize) -> &mut section::Section64{
+    }
+    pub fn get_mut_section_with_idx(&mut self, idx: usize) -> &mut section::Section64 {
         &mut self.sections[idx]
-    } 
+    }
 
     /// get section index if predicate returns true.
     pub fn first_shidx_by<P>(&self, predicate: P) -> Option<usize>
@@ -57,6 +57,9 @@ impl ELF64 {
             Some(idx) => Some(&mut self.sections[idx]),
             None => None,
         }
+    }
+    pub fn set_sections(&mut self, sections: Vec<section::Section64>) {
+        self.sections = sections;
     }
     pub fn set_segments(&mut self, segments: Vec<segment::Segment64>) {
         self.segments = segments;
@@ -140,6 +143,9 @@ impl ELF64 {
     }
     pub fn add_section(&mut self, sct: section::Section64) {
         self.sections.push(sct);
+    }
+    pub fn get_ehdr(&self) -> &header::Ehdr64 {
+        &self.ehdr
     }
     pub fn get_ehdr_as_mut(&mut self) -> &mut header::Ehdr64 {
         &mut self.ehdr

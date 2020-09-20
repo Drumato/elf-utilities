@@ -23,3 +23,15 @@ impl ELFCLASS {
         }
     }
 }
+
+impl From<u8> for ELFCLASS {
+    fn from(byte: u8) -> Self {
+        match byte {
+            0 => Self::CLASSNone,
+            1 => Self::CLASS32,
+            2 => Self::CLASS64,
+            3 => Self::CLASSNUM,
+            _ => Self::ANY(byte),
+        }
+    }
+}
