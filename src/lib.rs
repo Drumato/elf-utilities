@@ -66,7 +66,7 @@ mod file_tests {
         let ehdr: header::Ehdr64 = Default::default();
         let elf_file = file::ELF64::new(ehdr);
 
-        assert_eq!(elf_file.section_number(), 0);
+        assert_eq!(elf_file.sections.len(), 0);
     }
 }
 

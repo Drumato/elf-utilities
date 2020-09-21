@@ -75,16 +75,16 @@ impl Section64 {
 #[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Shdr64 {
-    sh_name: Elf64Word,
-    sh_type: Elf64Word,
-    sh_flags: Elf64Xword,
-    sh_addr: Elf64Addr,
-    sh_offset: Elf64Off,
-    sh_size: Elf64Xword,
-    sh_link: Elf64Word,
-    sh_info: Elf64Word,
-    sh_addralign: Elf64Xword,
-    sh_entsize: Elf64Xword,
+    pub sh_name: Elf64Word,
+    pub sh_type: Elf64Word,
+    pub sh_flags: Elf64Xword,
+    pub sh_addr: Elf64Addr,
+    pub sh_offset: Elf64Off,
+    pub sh_size: Elf64Xword,
+    pub sh_link: Elf64Word,
+    pub sh_info: Elf64Word,
+    pub sh_addralign: Elf64Xword,
+    pub sh_entsize: Elf64Xword,
 }
 
 impl Default for Shdr64 {
@@ -114,61 +114,9 @@ impl Shdr64 {
     pub fn get_type(&self) -> section_type::TYPE {
         section_type::TYPE::from(self.sh_type)
     }
-    pub fn get_link(&self) -> Elf64Word {
-        self.sh_link
-    }
-    pub fn get_size(&self) -> Elf64Xword {
-        self.sh_size
-    }
-    pub fn get_info(&self) -> Elf64Word {
-        self.sh_info
-    }
-    pub fn get_entry_size(&self) -> Elf64Xword {
-        self.sh_entsize
-    }
-    pub fn get_flags(&self) -> Elf64Xword {
-        self.sh_flags
-    }
-    pub fn get_addralign(&self) -> Elf64Xword {
-        self.sh_addralign
-    }
-    pub fn get_offset(&self) -> Elf64Off {
-        self.sh_offset
-    }
-    pub fn get_addr(&self) -> Elf64Addr {
-        self.sh_addr
-    }
-
     // setter
-    pub fn set_name(&mut self, name: Elf64Word) {
-        self.sh_name = name;
-    }
-    pub fn set_offset(&mut self, offset: Elf64Off) {
-        self.sh_offset = offset;
-    }
     pub fn set_type(&mut self, ty: section_type::TYPE) {
         self.sh_type = ty.to_bytes();
-    }
-    pub fn set_size(&mut self, size: Elf64Xword) {
-        self.sh_size = size;
-    }
-    pub fn set_link(&mut self, link: Elf64Word) {
-        self.sh_link = link;
-    }
-    pub fn set_info(&mut self, info: Elf64Word) {
-        self.sh_info = info;
-    }
-    pub fn set_entry_size(&mut self, entry_size: Elf64Xword) {
-        self.sh_entsize = entry_size;
-    }
-    pub fn set_flags(&mut self, flags: Elf64Xword) {
-        self.sh_flags = flags;
-    }
-    pub fn set_addralign(&mut self, addralign: Elf64Xword) {
-        self.sh_addralign = addralign;
-    }
-    pub fn set_addr(&mut self, addr: Elf64Addr) {
-        self.sh_addr = addr;
     }
 
     /// Create Vec<u8> from this.

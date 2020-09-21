@@ -20,28 +20,28 @@ impl Segment64 {
 #[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Phdr64 {
     /// Segment type
-    p_type: Elf64Word,
+    pub p_type: Elf64Word,
 
     /// Segment flags
-    p_flags: Elf64Word,
+    pub p_flags: Elf64Word,
 
     /// Segment file offset
-    p_offset: Elf64Off,
+    pub p_offset: Elf64Off,
 
     /// Segment virtual address
-    p_vaddr: Elf64Addr,
+    pub p_vaddr: Elf64Addr,
 
     /// Segment physical address
-    p_paddr: Elf64Addr,
+    pub p_paddr: Elf64Addr,
 
     /// Segment size in file
-    p_filesz: Elf64Xword,
+    pub p_filesz: Elf64Xword,
 
     /// Segment size in memory
-    p_memsz: Elf64Xword,
+    pub p_memsz: Elf64Xword,
 
     /// Segment alignment
-    p_align: Elf64Xword,
+    pub p_align: Elf64Xword,
 }
 
 impl Default for Phdr64 {
@@ -65,15 +65,11 @@ impl Phdr64 {
     }
 
     // getter
-    pub fn get_flags(&self) -> Elf64Word {
-        self.p_flags
-    }
-    pub fn get_type(&self) -> Elf64Word {
-        self.p_type
+    pub fn get_type(&self) -> segment_type::TYPE {
+        segment_type::TYPE::from(self.p_type)
     }
 
     // setter
-
     /// # Examples
     ///
     /// ```
@@ -82,47 +78,10 @@ impl Phdr64 {
     /// let mut phdr : segment::Phdr64 = Default::default();
     /// phdr.set_type(segment::TYPE::LOAD);
     ///
-    /// assert_eq!(phdr.get_type(), 0x01);
+    /// assert_eq!(phdr.get_type(), segment::TYPE::LOAD);
     /// ```
     pub fn set_type(&mut self, ptype: segment_type::TYPE) {
         self.p_type = ptype.to_bytes();
-    }
-
-    /// # Examples
-    ///
-    /// ```
-    /// use elf_utilities::segment;
-    ///
-    ///
-    /// let mut phdr : segment::Phdr64 = Default::default();
-    /// phdr.set_flags(segment::PF_W | segment::PF_R);
-    ///
-    /// assert_eq!(phdr.get_flags(), 0b110);
-    /// ```
-    pub fn set_flags(&mut self, flags: Elf64Word) {
-        self.p_flags = flags;
-    }
-
-    pub fn set_offset(&mut self, offset: Elf64Off) {
-        self.p_offset = offset;
-    }
-
-    pub fn set_vaddr(&mut self, vaddr: Elf64Addr) {
-        self.p_vaddr = vaddr;
-    }
-
-    pub fn set_paddr(&mut self, paddr: Elf64Addr) {
-        self.p_paddr = paddr;
-    }
-
-    pub fn set_filesz(&mut self, filesz: Elf64Xword) {
-        self.p_filesz = filesz;
-    }
-    pub fn set_memsz(&mut self, memsz: Elf64Xword) {
-        self.p_memsz = memsz;
-    }
-    pub fn set_align(&mut self, align: Elf64Xword) {
-        self.p_align = align;
     }
 
     /// Create Vec<u8> from this.
