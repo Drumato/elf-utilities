@@ -38,7 +38,8 @@ pub fn read_elf64(file_path: &str) -> Result<file::ELF64, Box<dyn std::error::Er
         let segments = read_elf64_segments(&elf_file.ehdr, &buf)?;
         elf_file.segments = segments;
     }
-    set_section_names_from_shstrtab(&mut elf_file);
+    set_sections_name_shstrtab(&mut elf_file);
+    set_symbols_name(&mut elf_file);
 
     Ok(elf_file)
 }
@@ -50,69 +51,29 @@ fn read_elf64_sections(
     let mut sections: Vec<section::Section64> = Vec::new();
 
     for sct_idx in 0..elf_header.e_shnum {
-        let shdr_result = bincode::deserialize(
-            &buf[elf_header.e_shoff as usize
-                + section::Shdr64::size() as usize * sct_idx as usize..],
-        );
-        if let Err(e) = shdr_result {
-            return Err(Box::new(ReadELFError::CantParseSectionHeader { k: e }));
-        }
+        let header_start = elf_header.e_shoff as usize + section::Shdr64::size() as usize * sct_idx as usize;
+        let shdr = section::Shdr64::deserialize(buf, header_start)?;
 
-        let shdr: section::Shdr64 = shdr_result.unwrap();
         let mut sct = section::Section64::new(String::new(), shdr);
 
         if sct.header.sh_size != 0 {
+            let sct_start = sct.header.sh_offset as usize;
             let sct_type = sct.header.get_type();
-            let start = sct.header.sh_offset as usize;
 
             match sct_type {
                 section::TYPE::SYMTAB => {
-                    let ent_size = sct.header.sh_entsize as usize;
-                    let symbol_number = sct.header.sh_size as usize / ent_size;
-                    let mut symbols = Vec::new();
-
-                    for sym_idx in 0..symbol_number {
-                        let sym_start = start + sym_idx * ent_size;
-                        let sym_end = start + (sym_idx + 1) * ent_size;
-
-                        let sym: symbol::Symbol64 =
-                            match bincode::deserialize(&buf[sym_start..sym_end]) {
-                                Ok(s) => s,
-                                Err(e) => {
-                                    return Err(Box::new(ReadELFError::CantParseSymbol { k: e }));
-                                }
-                            };
-                        symbols.push(sym);
-                    }
-
+                    let symbols = parse_bytes_as_symbols(&sct, sct_start, buf)?;
                     sct.symbols = Some(symbols);
                 }
 
                 section::TYPE::RELA => {
-                    let ent_size = sct.header.sh_entsize as usize;
-                    let symbol_number = sct.header.sh_size as usize / ent_size;
-                    let mut symbols = Vec::new();
-
-                    for sym_idx in 0..symbol_number {
-                        let sym_start = start + sym_idx * ent_size;
-                        let sym_end = start + (sym_idx + 1) * ent_size;
-
-                        let sym: relocation::Rela64 =
-                            match bincode::deserialize(&buf[sym_start..sym_end]) {
-                                Ok(s) => s,
-                                Err(e) => {
-                                    return Err(Box::new(ReadELFError::CantParseSymbol { k: e }));
-                                }
-                            };
-                        symbols.push(sym);
-                    }
-
-                    sct.rela_symbols = Some(symbols);
+                    let rela_symbols = parse_bytes_as_symbols(&sct, sct_start,buf)?;
+                    sct.rela_symbols = Some(rela_symbols);
                 }
 
                 // 通常通りバイト列として処理
                 _ => {
-                    sct.bytes = Some(buf[start..start + sct.header.sh_size as usize].to_vec());
+                    sct.bytes = Some(buf[sct_start..sct_start + sct.header.sh_size as usize].to_vec());
                 }
             }
         }
@@ -124,6 +85,28 @@ fn read_elf64_sections(
     Ok(sections)
 }
 
+fn parse_bytes_as_symbols<'a, T: serde::Deserialize<'a>>(sct: &section::Section64, sct_start: usize, buf: &'a [u8]) -> Result<Vec<T>, Box<dyn std::error::Error>> {
+    let ent_size = sct.header.sh_entsize as usize;
+    let symbol_number = sct.header.sh_size as usize / ent_size;
+    let mut symbols: Vec<T> = Vec::new();
+
+    for sym_idx in 0..symbol_number {
+        let sym_start = sct_start + sym_idx * ent_size;
+        let sym_end = sct_start + (sym_idx + 1) * ent_size;
+
+        let sym: T =
+            match bincode::deserialize(&buf[sym_start..sym_end]) {
+                Ok(s) => s,
+                Err(e) => {
+                    return Err(Box::new(ReadELFError::CantParseSymbol { k: e }));
+                }
+            };
+        symbols.push(sym);
+    }
+
+    Ok(symbols)
+}
+
 fn read_elf64_segments(
     elf_header: &header::Ehdr64,
     buf: &[u8],
@@ -131,15 +114,10 @@ fn read_elf64_segments(
     let mut segments: Vec<segment::Segment64> = Vec::new();
 
     for seg_idx in 0..elf_header.e_phnum {
-        let phdr_result = bincode::deserialize(
-            &buf[elf_header.e_phoff as usize
-                + segment::Phdr64::size() as usize * seg_idx as usize..],
-        );
-        if let Err(e) = phdr_result {
-            return Err(Box::new(ReadELFError::CantParseProgramHeader { k: e }));
-        }
+        let header_start = elf_header.e_phoff as usize
+            + segment::Phdr64::size() as usize * seg_idx as usize;
+        let phdr = segment::Phdr64::deserialize(buf, header_start)?;
 
-        let phdr = phdr_result.unwrap();
         let seg = segment::Segment64::new(phdr);
         segments.push(seg);
     }
@@ -147,7 +125,7 @@ fn read_elf64_segments(
     Ok(segments)
 }
 
-fn set_section_names_from_shstrtab(elf_file: &mut file::ELF64) {
+fn set_sections_name_shstrtab(elf_file: &mut file::ELF64) {
     let shstrndx = elf_file.ehdr.e_shstrndx as usize;
     let shnum = elf_file.ehdr.e_shnum as usize;
 
@@ -173,10 +151,40 @@ fn set_section_names_from_shstrtab(elf_file: &mut file::ELF64) {
     }
 }
 
-fn check_elf_magic(file_path: &str, header: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
-    assert_eq!(header.len(), 4);
+fn set_symbols_name(elf_file: &mut file::ELF64) {
+    let shnum = elf_file.ehdr.e_shnum as usize;
 
-    if header[0] != 0x7f || header[1] != 0x45 || header[2] != 0x4c || header[3] != 0x46 {
+    for idx in 0..shnum {
+        if elf_file.sections[idx].header.get_type() != section::TYPE::SYMTAB{
+            continue;
+        }
+
+        let symbol_strtab_idx = elf_file.sections[idx].header.sh_link as usize;
+        let symbol_strtab = elf_file.sections[symbol_strtab_idx].bytes.as_ref().unwrap().clone();
+
+        if let Some(ref mut symbols) = elf_file.sections[idx].symbols{
+            let symbol_number = symbols.len();
+
+            for sym_idx in 0..symbol_number{
+                let name_idx = symbols[sym_idx].st_name;
+                let name_bytes: Vec<u8> = symbol_strtab
+                    [name_idx as usize..]
+                    .to_vec()
+                    .iter()
+                    .take_while(|byte| **byte != 0x00)
+                    .map(|byte| *byte)
+                    .collect();
+
+                symbols[sym_idx].symbol_name = Some(std::str::from_utf8(&name_bytes).unwrap().to_string());
+            }
+        }
+    }
+}
+
+fn check_elf_magic(file_path: &str, buf: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!(buf.len(), 4);
+
+    if buf[0] != 0x7f || buf[1] != 0x45 || buf[2] != 0x4c || buf[3] != 0x46 {
         return Err(Box::new(ReadELFError::NotELF {
             file_path: file_path.to_string(),
         }));
@@ -185,13 +193,10 @@ fn check_elf_magic(file_path: &str, header: &[u8]) -> Result<(), Box<dyn std::er
     Ok(())
 }
 
-fn parse_elf64_header(header: &[u8]) -> Result<header::Ehdr64, Box<dyn std::error::Error>> {
-    assert_eq!(header.len(), header::Ehdr64::size() as usize);
+fn parse_elf64_header(buf: &[u8]) -> Result<header::Ehdr64, Box<dyn std::error::Error>> {
+    assert_eq!(buf.len(), header::Ehdr64::size() as usize);
 
-    match bincode::deserialize(header) {
-        Ok(ehdr) => Ok(ehdr),
-        Err(e) => Err(Box::new(ReadELFError::CantParseELFHeader { k: e })),
-    }
+    header::Ehdr64::deserialize(buf, 0)
 }
 
 #[cfg(test)]
@@ -264,6 +269,9 @@ mod parse_tests {
         assert_eq!(f.sections[10].rela_symbols.as_ref().unwrap().len(), 8);
         assert_eq!(f.sections[26].header.get_type(), section::TYPE::SYMTAB);
         assert_eq!(f.sections[26].symbols.as_ref().unwrap().len(), 62);
+        assert!(f.sections[26].symbols.as_ref().unwrap()[26].symbol_name.is_some());
+        assert_eq!(f.sections[26].symbols.as_ref().unwrap()[26].symbol_name.as_ref().unwrap(), "crtstuff.c");
+        assert_eq!(f.sections[26].symbols.as_ref().unwrap()[45].symbol_name.as_ref().unwrap(), "_ITM_deregisterTMCloneTable");
 
         assert_eq!(f.segments[0].header.get_type(), segment::TYPE::PHDR);
         assert_eq!(f.segments[0].header.p_flags, segment::segment_flag::PF_R);
