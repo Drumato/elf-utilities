@@ -52,7 +52,7 @@ impl Ehdr64 {
 
     // getter
     pub fn get_class(&self) -> class::ELFCLASS {
-        class::ELFCLASS::from(self.e_ident[data::ELFDATA::INDEX])
+        class::ELFCLASS::from(self.e_ident[class::ELFCLASS::INDEX])
     }
     pub fn get_elf_type(&self) -> elf_type::ELFTYPE {
         elf_type::ELFTYPE::from(self.e_type)
