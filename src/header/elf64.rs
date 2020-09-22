@@ -50,18 +50,18 @@ impl Ehdr64 {
         0x40
     }
 
-    // getter
     pub fn get_class(&self) -> class::ELFCLASS {
         class::ELFCLASS::from(self.e_ident[class::ELFCLASS::INDEX])
     }
-    pub fn get_elf_type(&self) -> elf_type::ELFTYPE {
+    pub fn get_data(&self) -> data::ELFDATA {
+        data::ELFDATA::from(self.e_ident[data::ELFDATA::INDEX])
+    }
+    pub fn get_type(&self) -> elf_type::ELFTYPE {
         elf_type::ELFTYPE::from(self.e_type)
     }
     pub fn get_machine(&self) -> machine::ELFMACHINE {
         machine::ELFMACHINE::from(self.e_machine)
     }
-
-    // setter
     pub fn set_class(&mut self, c: class::ELFCLASS) {
         self.e_ident[class::ELFCLASS::INDEX] = c.to_identifier();
     }

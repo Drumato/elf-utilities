@@ -83,7 +83,7 @@ mod elf_header_tests {
         ehdr.set_osabi(header::ELFOSABI::SYSV);
 
         ehdr.set_elf_type(header::ELFTYPE::EXEC);
-        assert_eq!(ehdr.get_elf_type(), header::ELFTYPE::EXEC);
+        assert_eq!(ehdr.get_type(), header::ELFTYPE::EXEC);
     }
 
     #[test]

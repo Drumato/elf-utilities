@@ -223,7 +223,7 @@ mod parse_tests {
         assert!(hdr_result.is_ok());
         let hdr_result = hdr_result.unwrap();
 
-        assert_eq!(hdr_result.get_elf_type(), header::ELFTYPE::DYN);
+        assert_eq!(hdr_result.get_type(), header::ELFTYPE::DYN);
         assert_eq!(hdr_result.e_entry, 0xe160);
         assert_eq!(hdr_result.e_shnum, 44);
     }

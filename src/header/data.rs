@@ -23,3 +23,15 @@ impl ELFDATA {
         }
     }
 }
+
+impl From<u8> for ELFDATA {
+    fn from(byte: u8) -> Self {
+        match byte {
+            0 => Self::DATANONE,
+            1 => Self::DATA2LSB,
+            2 => Self::DATA2MSB,
+            3 => Self::DATA2NUM,
+            _ => Self::ANY(byte),
+        }
+    }
+}
