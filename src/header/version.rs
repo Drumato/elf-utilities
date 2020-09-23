@@ -4,6 +4,7 @@ pub enum ELFVERSION {
 
     // for architecture-specific-value
     ANY(u8),
+    ANY32(u32),
 }
 
 impl ELFVERSION {
@@ -13,6 +14,14 @@ impl ELFVERSION {
         match self {
             Self::VERSIONCURRENT => 1,
             Self::ANY(c) => *c,
+            _ => unreachable!(),
+        }
+    }
+    pub fn to_object_version(&self) -> u32 {
+        match self {
+            Self::VERSIONCURRENT => 1,
+            Self::ANY32(c) => *c,
+            _ => unreachable!(),
         }
     }
 }
@@ -22,6 +31,14 @@ impl From<u8> for ELFVERSION {
         match byte {
             1 => Self::VERSIONCURRENT,
             _ => Self::ANY(byte),
+        }
+    }
+}
+impl From<u32> for ELFVERSION {
+    fn from(byte: u32) -> Self {
+        match byte {
+            1 => Self::VERSIONCURRENT,
+            _ => Self::ANY32(byte),
         }
     }
 }

@@ -79,7 +79,7 @@ mod elf_header_tests {
         let mut ehdr: header::Ehdr64 = Default::default();
         ehdr.set_class(header::ELFCLASS::CLASS64);
         ehdr.set_data(header::ELFDATA::DATA2LSB);
-        ehdr.set_version(header::ELFVERSION::VERSIONCURRENT);
+        ehdr.set_file_version(header::ELFVERSION::VERSIONCURRENT);
         ehdr.set_osabi(header::ELFOSABI::SYSV);
 
         ehdr.set_elf_type(header::ELFTYPE::EXEC);

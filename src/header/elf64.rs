@@ -56,11 +56,14 @@ impl Ehdr64 {
     pub fn get_data(&self) -> data::ELFDATA {
         data::ELFDATA::from(self.e_ident[data::ELFDATA::INDEX])
     }
+    pub fn get_file_version(&self) -> version::ELFVERSION {
+        version::ELFVERSION::from(self.e_ident[version::ELFVERSION::INDEX])
+    }
+    pub fn get_object_version(&self) -> version::ELFVERSION {
+        version::ELFVERSION::from(self.e_version)
+    }
     pub fn get_type(&self) -> elf_type::ELFTYPE {
         elf_type::ELFTYPE::from(self.e_type)
-    }
-    pub fn get_version(&self) -> version::ELFVERSION {
-        version::ELFVERSION::from(self.e_version)
     }
     pub fn get_machine(&self) -> machine::ELFMACHINE {
         machine::ELFMACHINE::from(self.e_machine)
@@ -71,8 +74,11 @@ impl Ehdr64 {
     pub fn set_data(&mut self, d: data::ELFDATA) {
         self.e_ident[data::ELFDATA::INDEX] = d.to_identifier();
     }
-    pub fn set_version(&mut self, v: version::ELFVERSION) {
+    pub fn set_file_version(&mut self, v: version::ELFVERSION) {
         self.e_ident[version::ELFVERSION::INDEX] = v.to_identifier();
+    }
+    pub fn set_object_version(&mut self, v: version::ELFVERSION) {
+        self.e_version = v.to_object_version();
     }
     pub fn set_osabi(&mut self, o: osabi::ELFOSABI) {
         self.e_ident[osabi::ELFOSABI::INDEX] = o.to_identifier();
@@ -110,9 +116,9 @@ impl Ehdr64 {
         bincode::serialize(self).unwrap()
     }
 
-    pub fn deserialize(buf: &[u8], start: usize) -> Result<Self, Box<dyn std::error::Error>>{
+    pub fn deserialize(buf: &[u8], start: usize) -> Result<Self, Box<dyn std::error::Error>> {
         // bincode::ErrorKindをトレイトオブジェクトとするため,この冗長な書き方が必要
-        match bincode::deserialize(&buf[start..]){
+        match bincode::deserialize(&buf[start..]) {
             Ok(header) => Ok(header),
             Err(e) => Err(e),
         }
