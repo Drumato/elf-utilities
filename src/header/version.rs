@@ -16,3 +16,12 @@ impl ELFVERSION {
         }
     }
 }
+
+impl From<u8> for ELFVERSION {
+    fn from(byte: u8) -> Self {
+        match byte {
+            1 => Self::VERSIONCURRENT,
+            _ => Self::ANY(byte),
+        }
+    }
+}

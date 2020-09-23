@@ -59,6 +59,9 @@ impl Ehdr64 {
     pub fn get_type(&self) -> elf_type::ELFTYPE {
         elf_type::ELFTYPE::from(self.e_type)
     }
+    pub fn get_version(&self) -> version::ELFVERSION {
+        version::ELFVERSION::from(self.e_version)
+    }
     pub fn get_machine(&self) -> machine::ELFMACHINE {
         machine::ELFMACHINE::from(self.e_machine)
     }
