@@ -58,3 +58,25 @@ impl ELFOSABI {
         }
     }
 }
+
+impl From<u8> for ELFOSABI {
+    fn from(byte: u8) -> Self {
+        match byte {
+            0 => Self::SYSV,
+            1 => Self::HPUX,
+            2 => Self::NETBSD,
+            3 => Self::GNU,
+            6 => Self::SOLARIS,
+            7 => Self::AIX,
+            8 => Self::IRIX,
+            9 => Self::FREEBSD,
+            10 => Self::TRU64,
+            11 => Self::MODESTO,
+            12 => Self::OPENBSD,
+            64 => Self::ARMAEABI,
+            97 => Self::ARM,
+            255 => Self::STANDALONE,
+            _ => Self::ANY(byte),
+        }
+    }
+}

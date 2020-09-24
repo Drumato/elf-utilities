@@ -68,6 +68,9 @@ impl Ehdr64 {
     pub fn get_machine(&self) -> machine::ELFMACHINE {
         machine::ELFMACHINE::from(self.e_machine)
     }
+    pub fn get_osabi(&self) -> osabi::ELFOSABI {
+        osabi::ELFOSABI::from(self.e_ident[osabi::ELFOSABI::INDEX])
+    }
     pub fn set_class(&mut self, c: class::ELFCLASS) {
         self.e_ident[class::ELFCLASS::INDEX] = c.to_identifier();
     }
