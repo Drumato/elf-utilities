@@ -160,7 +160,7 @@ fn set_symbols_name(elf_file: &mut file::ELF64) {
     let shnum = elf_file.ehdr.e_shnum as usize;
 
     for idx in 0..shnum {
-        if elf_file.sections[idx].header.get_type() != section::TYPE::SYMTAB {
+        if elf_file.sections[idx].header.get_type() != section::TYPE::SYMTAB  &&  elf_file.sections[idx].header.get_type() != section::TYPE::DYNSYM{
             continue;
         }
 
