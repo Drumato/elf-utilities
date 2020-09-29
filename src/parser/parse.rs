@@ -62,7 +62,7 @@ fn read_elf64_sections(
             let sct_type = sct.header.get_type();
 
             match sct_type {
-                section::TYPE::SYMTAB => {
+                section::TYPE::SYMTAB | section::TYPE::DYNSYM => {
                     let symbols = parse_bytes_as_symbols(&sct, sct_start, buf)?;
                     sct.symbols = Some(symbols);
                 }
