@@ -22,6 +22,12 @@ pub enum TYPE {
     TLS,
     /// Number of defined types
     NUM,
+    /// GCC .eh_frame_hdr segment
+    GNUEHFRAME,
+    /// Indicates stack executability
+    GNUSTACK,
+    /// Read-only after relocation
+    GNURELRO,
     /// User-defined values
     ANY(Elf64Word),
 }
@@ -38,6 +44,9 @@ impl TYPE {
             Self::PHDR => 6,
             Self::TLS => 7,
             Self::NUM => 8,
+            Self::GNUEHFRAME => 0x6474e550,
+            Self::GNUSTACK => 0x6474e551,
+            Self::GNURELRO => 0x6474e552,
             Self::ANY(c) => *c,
         }
     }
@@ -55,6 +64,9 @@ impl From<Elf64Word> for TYPE {
             6 => Self::PHDR,
             7 => Self::TLS,
             8 => Self::NUM,
+            0x6474e550 => Self::GNUEHFRAME,
+            0x6474e551 => Self::GNUSTACK,
+            0x6474e552 => Self::GNURELRO,
             _ => Self::ANY(bytes),
         }
     }
