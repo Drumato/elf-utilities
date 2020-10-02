@@ -2,7 +2,6 @@
 
 use crate::*;
 use serde::{Deserialize, Serialize};
-use crate::symbol::symbol_info;
 
 /* definitions for st_info(bind) */
 /// Local Symbol
@@ -112,6 +111,9 @@ impl Symbol64 {
     pub fn get_bind(&self) -> symbol::BIND {
         symbol::BIND::from(self.st_info >> 4)
     }
+    pub fn get_visibility(&self) -> symbol::VISIBILITY{
+        symbol::VISIBILITY::from(self.st_other & 0x03)
+    }
 
     /// Set symbol's information to Symbol64
     /// # Examples
@@ -125,7 +127,7 @@ impl Symbol64 {
     /// assert_eq!((1 << 4) | 2, null_sym.st_info);
     /// ```
     pub fn set_info(&mut self, sym_type: symbol::TYPE, bind: symbol::BIND) {
-        self.st_info = symbol_info(bind.to_byte(), sym_type.to_byte());
+        self.st_info = bind.to_byte() << 4 | sym_type.to_byte();
     }
 
     /// Create Vec<u8> from Symbol64's each fields.
