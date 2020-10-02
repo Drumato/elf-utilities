@@ -21,6 +21,7 @@ pub struct Section64 {
 }
 
 impl Section64 {
+
     pub fn new(section_name: String, shdr: Shdr64) -> Self {
         Self {
             name: section_name,

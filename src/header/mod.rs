@@ -1,10 +1,10 @@
-pub mod class;
-pub mod data;
-pub mod elf64;
-pub mod elf_type;
-pub mod machine;
-pub mod osabi;
-pub mod version;
+mod class;
+mod data;
+mod elf64;
+mod elf_type;
+mod machine;
+mod osabi;
+mod version;
 
 pub use class::*;
 pub use data::*;

@@ -2,18 +2,13 @@
 
 use crate::*;
 use serde::{Deserialize, Serialize};
+use crate::symbol::symbol_info;
 
 /* definitions for st_info(bind) */
 /// Local Symbol
 pub const STB_LOCAL: u8 = 0;
 /// Global Symbol
 pub const STB_GLOBAL: u8 = 1;
-
-/* definitions for st_info(type) */
-/// Code object
-pub const STT_FUNC: u8 = 2;
-/// Section
-pub const STT_SECTION: u8 = 3;
 
 /// Symbol64 is a entry of symbol table section.
 ///
@@ -110,30 +105,27 @@ impl Symbol64 {
         predicate(self)
     }
 
-    pub fn get_type(&self) -> u8 {
-        self.st_info & 0xf
+    pub fn get_type(&self) -> symbol::TYPE {
+        symbol::TYPE::from(self.st_info & 0x0f)
     }
 
-    pub fn get_bind(&self) -> u8 {
-        self.st_info >> 4
+    pub fn get_bind(&self) -> symbol::BIND {
+        symbol::BIND::from(self.st_info >> 4)
     }
 
     /// Set symbol's information to Symbol64
-    /// See [symbol::symbol_info](https://docs.rs/elf-utilities/0.1.28/elf_utilities/symbol/util/fn.symbol_info.html) for constructing symbol's information.
-    ///
     /// # Examples
     ///
     /// ```
     /// use elf_utilities::symbol;
     /// let mut null_sym = symbol::Symbol64::new_null_symbol();
     ///
-    /// let sym_info = symbol::symbol_info(symbol::STB_GLOBAL, symbol::STT_FUNC);
-    /// null_sym.set_info(sym_info);
+    /// null_sym.set_info(symbol::TYPE::FUNC, symbol::BIND::GLOBAL);
     ///
     /// assert_eq!((1 << 4) | 2, null_sym.st_info);
     /// ```
-    pub fn set_info(&mut self, info: u8) {
-        self.st_info = info;
+    pub fn set_info(&mut self, sym_type: symbol::TYPE, bind: symbol::BIND) {
+        self.st_info = symbol_info(bind.to_byte(), sym_type.to_byte());
     }
 
     /// Create Vec<u8> from Symbol64's each fields.

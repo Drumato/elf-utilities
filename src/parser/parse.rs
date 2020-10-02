@@ -257,7 +257,7 @@ mod parse_tests {
         assert_eq!(f.sections[1].header.sh_addralign, 0x1);
         assert_eq!(
             f.sections[1].header.sh_flags,
-            section::section_flag::SHF_ALLOC
+            section::SHF_ALLOC
         );
         assert_eq!(f.sections[1].header.sh_size, 0x1c);
         assert!(f.sections[1].bytes.is_some());
@@ -297,11 +297,11 @@ mod parse_tests {
         );
 
         assert_eq!(f.segments[0].header.get_type(), segment::TYPE::PHDR);
-        assert_eq!(f.segments[0].header.p_flags, segment::segment_flag::PF_R);
+        assert_eq!(f.segments[0].header.p_flags, segment::PF_R);
         assert_eq!(f.segments[0].header.p_align, 8);
 
         assert_eq!(f.segments[1].header.get_type(), segment::TYPE::INTERP);
-        assert_eq!(f.segments[1].header.p_flags, segment::segment_flag::PF_R);
+        assert_eq!(f.segments[1].header.p_flags, segment::PF_R);
         assert_eq!(f.segments[1].header.p_align, 1);
     }
 }
