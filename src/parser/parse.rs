@@ -72,6 +72,8 @@ fn read_elf64_sections(
                     sct.rela_symbols = Some(rela_symbols);
                 }
 
+                section::TYPE::NOBITS => {},
+
                 // 通常通りバイト列として処理
                 _ => {
                     sct.bytes =
@@ -303,5 +305,11 @@ mod parse_tests {
         assert_eq!(f.segments[1].header.get_type(), segment::TYPE::INTERP);
         assert_eq!(f.segments[1].header.p_flags, segment::PF_R);
         assert_eq!(f.segments[1].header.p_align, 1);
+    }
+
+    #[test]
+    fn read_elf64_test_2() {
+        let f_result = read_elf64("/bin/ls");
+        assert!(f_result.is_ok());
     }
 }
