@@ -1,72 +1,71 @@
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum TYPE {
+pub enum Type {
     /// Unspecified
-    NOTYPE,
-/// Data object
-OBJECT,
-/// Code object
-FUNC,
-/// Section
-SECTION,
+    NoType,
+    /// Data object
+    Object,
+    /// Code object
+    Func,
+    /// Section
+    Section,
     /// Symbol's name is file name
-    FILE,
+    File,
     /// Common data object
-    COMMON,
+    Common,
     /// Thread-Local data object
     TLS,
     /// Number of defined types
-    NUM,
+    Num,
     /// Start of OS-specific
-    LOOS,
+    LoOS,
     /// Indirect code object
-    GNUIFUNC,
+    GNUIFunc,
     /// End of OS-specific
-    HIOS,
+    HiOS,
     /// Start of processor-specific
-    LOPROC,
+    LoProc,
     /// end of processor-specific
-    HIPROC,
+    HiProc,
     /// User defined value
-    ANY(u8),
+    Any(u8),
 }
 
-
-impl TYPE {
+impl Type {
     pub fn to_byte(&self) -> u8 {
         match self {
-            Self::NOTYPE => 0,
-            Self::OBJECT => 1,
-            Self::FUNC => 2,
-            Self::SECTION => 3,
-            Self::FILE => 4,
-            Self::COMMON => 5,
+            Self::NoType => 0,
+            Self::Object => 1,
+            Self::Func => 2,
+            Self::Section => 3,
+            Self::File => 4,
+            Self::Common => 5,
             Self::TLS => 6,
-            Self::NUM => 7,
-            Self::LOOS|Self::GNUIFUNC => 10,
-            Self::HIOS => 12,
-            Self::LOPROC => 13,
-            Self::HIPROC => 15,
-            Self::ANY(b) => *b,
+            Self::Num => 7,
+            Self::LoOS | Self::GNUIFunc => 10,
+            Self::HiOS => 12,
+            Self::LoProc => 13,
+            Self::HiProc => 15,
+            Self::Any(b) => *b,
         }
     }
 }
 
-impl From<u8> for TYPE {
+impl From<u8> for Type {
     fn from(byte: u8) -> Self {
         match byte {
-            0 => Self::NOTYPE,
-            1 => Self::OBJECT,
-            2 => Self::FUNC,
-            3 => Self::SECTION,
-            4 => Self::FILE,
-            5 => Self::COMMON,
+            0 => Self::NoType,
+            1 => Self::Object,
+            2 => Self::Func,
+            3 => Self::Section,
+            4 => Self::File,
+            5 => Self::Common,
             6 => Self::TLS,
-            7 => Self::NUM,
-            10 => Self::LOPROC,
-            12 => Self::HIOS,
-            13 => Self::LOPROC,
-            15 => Self::HIPROC,
-            _ => Self::ANY(byte),
+            7 => Self::Num,
+            10 => Self::LoProc,
+            12 => Self::HiOS,
+            13 => Self::LoProc,
+            15 => Self::HiProc,
+            _ => Self::Any(byte),
         }
     }
 }

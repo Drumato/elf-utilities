@@ -21,7 +21,6 @@ pub struct Section64 {
 }
 
 impl Section64 {
-
     pub fn new(section_name: String, shdr: Shdr64) -> Self {
         Self {
             name: section_name,
@@ -41,7 +40,7 @@ impl Section64 {
     /// create binary without header
     pub fn to_le_bytes(&self) -> Vec<u8> {
         match self.header.get_type() {
-            section_type::TYPE::SYMTAB => {
+            section_type::Type::SymTab => {
                 let mut bytes = Vec::new();
 
                 for sym in self.symbols.as_ref().unwrap().iter() {
@@ -49,7 +48,7 @@ impl Section64 {
                 }
                 bytes
             }
-            section_type::TYPE::RELA => {
+            section_type::Type::Rela => {
                 let mut bytes = Vec::new();
 
                 for rela in self.rela_symbols.as_ref().unwrap().iter() {
@@ -112,11 +111,11 @@ impl Shdr64 {
     }
 
     // getter
-    pub fn get_type(&self) -> section_type::TYPE {
-        section_type::TYPE::from(self.sh_type)
+    pub fn get_type(&self) -> section_type::Type {
+        section_type::Type::from(self.sh_type)
     }
     // setter
-    pub fn set_type(&mut self, ty: section_type::TYPE) {
+    pub fn set_type(&mut self, ty: section_type::Type) {
         self.sh_type = ty.to_bytes();
     }
 

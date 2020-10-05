@@ -50,46 +50,46 @@ impl Ehdr64 {
         0x40
     }
 
-    pub fn get_class(&self) -> class::ELFCLASS {
-        class::ELFCLASS::from(self.e_ident[class::ELFCLASS::INDEX])
+    pub fn get_class(&self) -> class::Class {
+        class::Class::from(self.e_ident[class::Class::INDEX])
     }
-    pub fn get_data(&self) -> data::ELFDATA {
-        data::ELFDATA::from(self.e_ident[data::ELFDATA::INDEX])
+    pub fn get_data(&self) -> data::Data {
+        data::Data::from(self.e_ident[data::Data::INDEX])
     }
-    pub fn get_file_version(&self) -> version::ELFVERSION {
-        version::ELFVERSION::from(self.e_ident[version::ELFVERSION::INDEX])
+    pub fn get_file_version(&self) -> version::Version {
+        version::Version::from(self.e_ident[version::Version::INDEX])
     }
-    pub fn get_object_version(&self) -> version::ELFVERSION {
-        version::ELFVERSION::from(self.e_version)
+    pub fn get_object_version(&self) -> version::Version {
+        version::Version::from(self.e_version)
     }
-    pub fn get_type(&self) -> elf_type::ELFTYPE {
-        elf_type::ELFTYPE::from(self.e_type)
+    pub fn get_type(&self) -> elf_type::Type {
+        elf_type::Type::from(self.e_type)
     }
-    pub fn get_machine(&self) -> machine::ELFMACHINE {
-        machine::ELFMACHINE::from(self.e_machine)
+    pub fn get_machine(&self) -> machine::Machine {
+        machine::Machine::from(self.e_machine)
     }
-    pub fn get_osabi(&self) -> osabi::ELFOSABI {
-        osabi::ELFOSABI::from(self.e_ident[osabi::ELFOSABI::INDEX])
+    pub fn get_osabi(&self) -> osabi::OSABI {
+        osabi::OSABI::from(self.e_ident[osabi::OSABI::INDEX])
     }
-    pub fn set_class(&mut self, c: class::ELFCLASS) {
-        self.e_ident[class::ELFCLASS::INDEX] = c.to_identifier();
+    pub fn set_class(&mut self, c: class::Class) {
+        self.e_ident[class::Class::INDEX] = c.to_identifier();
     }
-    pub fn set_data(&mut self, d: data::ELFDATA) {
-        self.e_ident[data::ELFDATA::INDEX] = d.to_identifier();
+    pub fn set_data(&mut self, d: data::Data) {
+        self.e_ident[data::Data::INDEX] = d.to_identifier();
     }
-    pub fn set_file_version(&mut self, v: version::ELFVERSION) {
-        self.e_ident[version::ELFVERSION::INDEX] = v.to_identifier();
+    pub fn set_file_version(&mut self, v: version::Version) {
+        self.e_ident[version::Version::INDEX] = v.to_identifier();
     }
-    pub fn set_object_version(&mut self, v: version::ELFVERSION) {
+    pub fn set_object_version(&mut self, v: version::Version) {
         self.e_version = v.to_object_version();
     }
-    pub fn set_osabi(&mut self, o: osabi::ELFOSABI) {
-        self.e_ident[osabi::ELFOSABI::INDEX] = o.to_identifier();
+    pub fn set_osabi(&mut self, o: osabi::OSABI) {
+        self.e_ident[osabi::OSABI::INDEX] = o.to_identifier();
     }
-    pub fn set_elf_type(&mut self, e_type: elf_type::ELFTYPE) {
+    pub fn set_elf_type(&mut self, e_type: elf_type::Type) {
         self.e_type = e_type.to_bytes();
     }
-    pub fn set_machine(&mut self, e_machine: machine::ELFMACHINE) {
+    pub fn set_machine(&mut self, e_machine: machine::Machine) {
         self.e_machine = e_machine.to_bytes();
     }
 

@@ -1,3 +1,4 @@
+pub mod dynamic;
 pub mod file;
 pub mod header;
 pub mod parser;
@@ -77,20 +78,20 @@ mod elf_header_tests {
     #[test]
     fn construct_identification_test() {
         let mut ehdr: header::Ehdr64 = Default::default();
-        ehdr.set_class(header::ELFCLASS::CLASS64);
-        ehdr.set_data(header::ELFDATA::DATA2LSB);
-        ehdr.set_file_version(header::ELFVERSION::VERSIONCURRENT);
-        ehdr.set_osabi(header::ELFOSABI::SYSV);
+        ehdr.set_class(header::Class::Bit64);
+        ehdr.set_data(header::Data::LSB2);
+        ehdr.set_file_version(header::Version::Current);
+        ehdr.set_osabi(header::OSABI::SysV);
 
-        ehdr.set_elf_type(header::ELFTYPE::EXEC);
-        assert_eq!(ehdr.get_type(), header::ELFTYPE::EXEC);
+        ehdr.set_elf_type(header::Type::Exec);
+        assert_eq!(ehdr.get_type(), header::Type::Exec);
     }
 
     #[test]
     fn set_elf_machine_architecture_test() {
         let mut ehdr: header::Ehdr64 = Default::default();
-        ehdr.set_machine(header::ELFMACHINE::EMX8664);
+        ehdr.set_machine(header::Machine::X8664);
 
-        assert_eq!(ehdr.get_machine(), header::ELFMACHINE::EMX8664);
+        assert_eq!(ehdr.get_machine(), header::Machine::X8664);
     }
 }

@@ -65,8 +65,8 @@ impl Phdr64 {
     }
 
     // getter
-    pub fn get_type(&self) -> segment_type::TYPE {
-        segment_type::TYPE::from(self.p_type)
+    pub fn get_type(&self) -> segment_type::Type {
+        segment_type::Type::from(self.p_type)
     }
 
     // setter
@@ -76,11 +76,11 @@ impl Phdr64 {
     /// use elf_utilities::segment;
     ///
     /// let mut phdr : segment::Phdr64 = Default::default();
-    /// phdr.set_type(segment::TYPE::LOAD);
+    /// phdr.set_type(segment::Type::Load);
     ///
-    /// assert_eq!(phdr.get_type(), segment::TYPE::LOAD);
+    /// assert_eq!(phdr.get_type(), segment::Type::Load);
     /// ```
-    pub fn set_type(&mut self, ptype: segment_type::TYPE) {
+    pub fn set_type(&mut self, ptype: segment_type::Type) {
         self.p_type = ptype.to_bytes();
     }
 

@@ -3,94 +3,94 @@
 use crate::*;
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum TYPE {
+pub enum Type {
     /// Section header table entry unused
-    NULL,
+    Null,
     /// Program data
-    PROGBITS,
+    ProgBits,
     /// Symbol table
-    SYMTAB,
+    SymTab,
     /// String table
-    STRTAB,
+    StrTab,
     /// Relocation entries with addends
-    RELA,
+    Rela,
     /// Symbol hash table
-    HASH,
+    Hash,
     /// Dynamic linking information
-    DYNAMIC,
+    Dynamic,
     /// Notes
-    NOTE,
+    Note,
     /// Program space with no data(.bss)
-    NOBITS,
+    NoBits,
     /// Relocation entries, no addends
-    REL,
+    Rel,
     /// Reserved
-    SHLIB,
+    ShLib,
     /// Dynamic linker symbol table
-    DYNSYM,
+    DynSym,
     /// Array of constructors
-    INITARRAY,
+    InitArray,
     /// Array of destructors
-    FINIARRAY,
+    FiniArray,
     /// Array of preconstructors
-    PREINITARRAY,
+    PreInitArray,
     /// Section group
-    GROUP,
+    Group,
     /// Extended section indices
-    SYMTABSHNDX,
+    SymTabShNdx,
     /// Number of defined types
-    NUM,
-    ANY(Elf64Word),
+    Num,
+    Any(Elf64Word),
 }
 
-impl TYPE {
+impl Type {
     pub fn to_bytes(&self) -> Elf64Word {
         match self {
-            Self::NULL => 0,
-            Self::PROGBITS => 1,
-            Self::SYMTAB => 2,
-            Self::STRTAB => 3,
-            Self::RELA => 4,
-            Self::HASH => 5,
-            Self::DYNAMIC => 6,
-            Self::NOTE => 7,
-            Self::NOBITS => 8,
-            Self::REL => 9,
-            Self::SHLIB => 10,
-            Self::DYNSYM => 11,
-            Self::INITARRAY => 14,
-            Self::FINIARRAY => 15,
-            Self::PREINITARRAY => 16,
-            Self::GROUP => 17,
-            Self::SYMTABSHNDX => 18,
-            Self::NUM => 19,
-            Self::ANY(c) => *c,
+            Self::Null => 0,
+            Self::ProgBits => 1,
+            Self::SymTab => 2,
+            Self::StrTab => 3,
+            Self::Rela => 4,
+            Self::Hash => 5,
+            Self::Dynamic => 6,
+            Self::Note => 7,
+            Self::NoBits => 8,
+            Self::Rel => 9,
+            Self::ShLib => 10,
+            Self::DynSym => 11,
+            Self::InitArray => 14,
+            Self::FiniArray => 15,
+            Self::PreInitArray => 16,
+            Self::Group => 17,
+            Self::SymTabShNdx => 18,
+            Self::Num => 19,
+            Self::Any(c) => *c,
         }
     }
 }
 
-impl From<Elf64Word> for TYPE {
+impl From<Elf64Word> for Type {
     fn from(bytes: Elf64Word) -> Self {
         match bytes {
-            0 => Self::NULL,
-            1 => Self::PROGBITS,
-            2 => Self::SYMTAB,
-            3 => Self::STRTAB,
-            4 => Self::RELA,
-            5 => Self::HASH,
-            6 => Self::DYNAMIC,
-            7 => Self::NOTE,
-            8 => Self::NOBITS,
-            9 => Self::REL,
-            10 => Self::SHLIB,
-            11 => Self::DYNSYM,
-            14 => Self::INITARRAY,
-            15 => Self::FINIARRAY,
-            16 => Self::PREINITARRAY,
-            17 => Self::GROUP,
-            18 => Self::SYMTABSHNDX,
-            19 => Self::NUM,
-            _ => Self::ANY(bytes),
+            0 => Self::Null,
+            1 => Self::ProgBits,
+            2 => Self::SymTab,
+            3 => Self::StrTab,
+            4 => Self::Rela,
+            5 => Self::Hash,
+            6 => Self::Dynamic,
+            7 => Self::Note,
+            8 => Self::NoBits,
+            9 => Self::Rel,
+            10 => Self::ShLib,
+            11 => Self::DynSym,
+            14 => Self::InitArray,
+            15 => Self::FiniArray,
+            16 => Self::PreInitArray,
+            17 => Self::Group,
+            18 => Self::SymTabShNdx,
+            19 => Self::Num,
+            _ => Self::Any(bytes),
         }
     }
 }

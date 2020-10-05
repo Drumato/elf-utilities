@@ -104,15 +104,15 @@ impl Symbol64 {
         predicate(self)
     }
 
-    pub fn get_type(&self) -> symbol::TYPE {
-        symbol::TYPE::from(self.st_info & 0x0f)
+    pub fn get_type(&self) -> symbol::Type {
+        symbol::Type::from(self.st_info & 0x0f)
     }
 
-    pub fn get_bind(&self) -> symbol::BIND {
-        symbol::BIND::from(self.st_info >> 4)
+    pub fn get_bind(&self) -> symbol::Bind {
+        symbol::Bind::from(self.st_info >> 4)
     }
-    pub fn get_visibility(&self) -> symbol::VISIBILITY{
-        symbol::VISIBILITY::from(self.st_other & 0x03)
+    pub fn get_visibility(&self) -> symbol::Visibility {
+        symbol::Visibility::from(self.st_other & 0x03)
     }
 
     /// Set symbol's information to Symbol64
@@ -122,11 +122,11 @@ impl Symbol64 {
     /// use elf_utilities::symbol;
     /// let mut null_sym = symbol::Symbol64::new_null_symbol();
     ///
-    /// null_sym.set_info(symbol::TYPE::FUNC, symbol::BIND::GLOBAL);
+    /// null_sym.set_info(symbol::Type::Func, symbol::Bind::Global);
     ///
     /// assert_eq!((1 << 4) | 2, null_sym.st_info);
     /// ```
-    pub fn set_info(&mut self, sym_type: symbol::TYPE, bind: symbol::BIND) {
+    pub fn set_info(&mut self, sym_type: symbol::Type, bind: symbol::Bind) {
         self.st_info = bind.to_byte() << 4 | sym_type.to_byte();
     }
 

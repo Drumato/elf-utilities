@@ -62,17 +62,17 @@ fn read_elf64_sections(
             let sct_type = sct.header.get_type();
 
             match sct_type {
-                section::TYPE::SYMTAB | section::TYPE::DYNSYM => {
+                section::Type::SymTab | section::Type::DynSym => {
                     let symbols = parse_bytes_as_symbols(&sct, sct_start, buf)?;
                     sct.symbols = Some(symbols);
                 }
 
-                section::TYPE::RELA => {
+                section::Type::Rela => {
                     let rela_symbols = parse_bytes_as_symbols(&sct, sct_start, buf)?;
                     sct.rela_symbols = Some(rela_symbols);
                 }
 
-                section::TYPE::NOBITS => {},
+                section::Type::NoBits => {}
 
                 // 通常通りバイト列として処理
                 _ => {
@@ -162,7 +162,9 @@ fn set_symbols_name(elf_file: &mut file::ELF64) {
     let shnum = elf_file.ehdr.e_shnum as usize;
 
     for idx in 0..shnum {
-        if elf_file.sections[idx].header.get_type() != section::TYPE::SYMTAB  &&  elf_file.sections[idx].header.get_type() != section::TYPE::DYNSYM{
+        if elf_file.sections[idx].header.get_type() != section::Type::SymTab
+            && elf_file.sections[idx].header.get_type() != section::Type::DynSym
+        {
             continue;
         }
 
@@ -234,7 +236,7 @@ mod parse_tests {
         assert!(hdr_result.is_ok());
         let hdr_result = hdr_result.unwrap();
 
-        assert_eq!(hdr_result.get_type(), header::ELFTYPE::DYN);
+        assert_eq!(hdr_result.get_type(), header::Type::Dyn);
         assert_eq!(hdr_result.e_entry, 0xe160);
         assert_eq!(hdr_result.e_shnum, 44);
     }
@@ -253,14 +255,11 @@ mod parse_tests {
         assert_eq!(f.segments.len(), 13);
 
         assert_eq!(".interp", &f.sections[1].name);
-        assert_eq!(f.sections[1].header.get_type(), section::TYPE::PROGBITS);
+        assert_eq!(f.sections[1].header.get_type(), section::Type::ProgBits);
         assert_eq!(f.sections[1].header.sh_addr, 0x318);
         assert_eq!(f.sections[1].header.sh_offset, 0x318);
         assert_eq!(f.sections[1].header.sh_addralign, 0x1);
-        assert_eq!(
-            f.sections[1].header.sh_flags,
-            section::SHF_ALLOC
-        );
+        assert_eq!(f.sections[1].header.sh_flags, section::SHF_ALLOC);
         assert_eq!(f.sections[1].header.sh_size, 0x1c);
         assert!(f.sections[1].bytes.is_some());
         assert_eq!(
@@ -268,7 +267,7 @@ mod parse_tests {
             f.sections[1].header.sh_size as usize
         );
 
-        assert_eq!(f.sections[2].header.get_type(), section::TYPE::NOTE);
+        assert_eq!(f.sections[2].header.get_type(), section::Type::Note);
         assert_eq!(f.sections[2].header.sh_addr, 0x338);
         assert!(f.sections[2].bytes.is_some());
         assert_eq!(
@@ -276,9 +275,9 @@ mod parse_tests {
             f.sections[2].header.sh_size as usize
         );
 
-        assert_eq!(f.sections[10].header.get_type(), section::TYPE::RELA);
+        assert_eq!(f.sections[10].header.get_type(), section::Type::Rela);
         assert_eq!(f.sections[10].rela_symbols.as_ref().unwrap().len(), 8);
-        assert_eq!(f.sections[26].header.get_type(), section::TYPE::SYMTAB);
+        assert_eq!(f.sections[26].header.get_type(), section::Type::SymTab);
         assert_eq!(f.sections[26].symbols.as_ref().unwrap().len(), 62);
         assert!(f.sections[26].symbols.as_ref().unwrap()[26]
             .symbol_name
@@ -298,11 +297,11 @@ mod parse_tests {
             "_ITM_deregisterTMCloneTable"
         );
 
-        assert_eq!(f.segments[0].header.get_type(), segment::TYPE::PHDR);
+        assert_eq!(f.segments[0].header.get_type(), segment::Type::Phdr);
         assert_eq!(f.segments[0].header.p_flags, segment::PF_R);
         assert_eq!(f.segments[0].header.p_align, 8);
 
-        assert_eq!(f.segments[1].header.get_type(), segment::TYPE::INTERP);
+        assert_eq!(f.segments[1].header.get_type(), segment::Type::Interp);
         assert_eq!(f.segments[1].header.p_flags, segment::PF_R);
         assert_eq!(f.segments[1].header.p_align, 1);
     }

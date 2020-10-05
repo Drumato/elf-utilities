@@ -1,43 +1,43 @@
 //! ELF symbol visibility.
 
 /// Symbol Visibilities.
-pub enum VISIBILITY {
+pub enum Visibility {
     /// Default symbol visibility rules.
-    DEFAULT,
+    Default,
 
     /// Processor specific hidden class.
-    INTERNAL,
+    Internal,
 
     /// Symbol is unavailable in other modules.
-    HIDDEN,
+    Hidden,
 
     /// Not preemptive, not exported.
-    PROTECTED,
+    Protected,
 
     /// User-defined value.
-    ANY(u8),
+    Any(u8),
 }
 
-impl VISIBILITY {
+impl Visibility {
     pub fn to_byte(&self) -> u8 {
         match self {
-            Self::DEFAULT => 0,
-            Self::INTERNAL => 1,
-            Self::HIDDEN => 2,
-            Self::PROTECTED => 3,
-            Self::ANY(c) => *c,
+            Self::Default => 0,
+            Self::Internal => 1,
+            Self::Hidden => 2,
+            Self::Protected => 3,
+            Self::Any(c) => *c,
         }
     }
 }
 
-impl From<u8> for VISIBILITY {
+impl From<u8> for Visibility {
     fn from(byte: u8) -> Self {
         match byte {
-            0 => Self::DEFAULT,
-            1 => Self::INTERNAL,
-            2 => Self::HIDDEN,
-            3 => Self::PROTECTED,
-            _ => Self::ANY(byte),
+            0 => Self::Default,
+            1 => Self::Internal,
+            2 => Self::Hidden,
+            3 => Self::Protected,
+            _ => Self::Any(byte),
         }
     }
 }

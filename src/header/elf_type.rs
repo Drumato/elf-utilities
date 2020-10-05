@@ -1,50 +1,61 @@
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum ELFTYPE {
-    NONE,
-    REL,
-    EXEC,
-    DYN,
-    CORE,
-    NUM,
-    LOOS,
-    HIOS,
-    LOPROC,
-    HIPROC,
-    ANY(u16),
+pub enum Type {
+    /// No file type
+    None,
+    /// Relocatable file
+    Rel,
+    /// Executable file
+    Exec,
+    /// Shared object file
+    Dyn,
+    /// Core file
+    Core,
+    /// Number of defined types
+    Num,
+    /// Start of OS specific
+    LoOS,
+    /// End of OS specific
+    HiOS,
+    /// Start of processor specific
+    LoProc,
+    /// End of processor specific
+    HiProc,
+    /// User defined value
+    Any(u16),
 }
 
-impl ELFTYPE {
+impl Type {
     pub fn to_bytes(&self) -> u16 {
         match self {
-            Self::NONE => 0,
-            Self::REL => 1,
-            Self::EXEC => 2,
-            Self::DYN => 3,
-            Self::CORE => 4,
-            Self::NUM => 5,
-            Self::LOOS => 0xfe00,
-            Self::HIOS => 0xfeff,
-            Self::LOPROC => 0xff00,
-            Self::HIPROC => 0xffff,
-            Self::ANY(c) => *c,
+            Self::None => 0,
+            Self::Rel => 1,
+            Self::Exec => 2,
+            Self::Dyn => 3,
+            Self::Core => 4,
+            Self::Num => 5,
+            Self::LoOS => 0xfe00,
+            Self::HiOS => 0xfeff,
+            Self::LoProc => 0xff00,
+            Self::HiProc => 0xffff,
+            Self::Any(c) => *c,
         }
     }
 }
 
-impl From<u16> for ELFTYPE {
+impl From<u16> for Type {
     fn from(bytes: u16) -> Self {
         match bytes {
-            0 => Self::NONE,
-            1 => Self::REL,
-            2 => Self::EXEC,
-            3 => Self::DYN,
-            4 => Self::CORE,
-            5 => Self::NUM,
-            0xfe00 => Self::LOOS,
-            0xfeff => Self::HIOS,
-            0xff00 => Self::LOPROC,
-            0xffff => Self::HIPROC,
-            _ => Self::ANY(bytes),
+            0 => Self::None,
+            1 => Self::Rel,
+            2 => Self::Exec,
+            3 => Self::Dyn,
+            4 => Self::Core,
+            5 => Self::Num,
+            0xfe00 => Self::LoOS,
+            0xfeff => Self::HiOS,
+            0xff00 => Self::LoProc,
+            0xffff => Self::HiProc,
+            _ => Self::Any(bytes),
         }
     }
 }

@@ -1,202 +1,202 @@
 use crate::*;
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum ELFMACHINE {
+pub enum Machine {
     // No machine
-    EMNONE,
+    None,
     // AT&T WE 32100
-    EMM32,
+    M32,
     // SUN SPARC
-    EMSPARC,
+    SPARC,
     // Intel 80386
-    EM386,
+    Intel386,
     // Motorola m68k family
-    EM68K,
+    M68K,
     // Motorola m88k family
-    EM88K,
+    M88K,
     // Intel MCU
-    EMIAMCU,
+    IntelMCU,
     // Intel 80860
-    EM860,
+    Intel80860,
     // MIPS R3000 big-endian
-    EMMIPS,
+    MIPS,
     // IBM System/370
-    EMS370,
+    S370,
     // MIPS R3000 little-endian
-    EMMIPSRS3LE,
+    MIPSRS3LE,
 
     // reserved 11-14
 
     // HPPA
-    EMPARISC,
+    Parisc,
     // Fujitsu VPP500
-    EMVPP500,
+    VPP500,
     // Sun's "v8plus"
-    EMSPARC32PLUS,
+    SPARC32Plus,
     // Intel 80960
-    EM960,
+    Intel80960,
     // PowerPC
-    EMPPC,
+    PowerPC,
     // PowerPC 64-bit
-    EMPPC64,
+    PowerPC65,
     // IBM S390
-    EMS390,
+    S390,
     // IBM SPU/SPC
-    EMSPU,
+    SPU,
 
     // reserved 24-35
 
     // NEC V700 series
-    EMV800,
+    V800,
     // Fujitsu FR20
-    EMFR20,
+    FR20,
     // TRW RH-32
-    EMRH32,
+    RH32,
     // Motorola RCE
-    EMRCE,
+    RCE,
     // ARM
-    EMARM,
+    Arm,
     // Digital Alpha
-    EMFAKEALPHA,
+    FakeAlpha,
     // Hitachi SH
     EMSH,
     // SPARC v9 64-bit
     EMSPARCV9,
     // Siemens Tricore
-    EMTRICORE,
+    Tricore,
     // Argonaut RISC Core
-    EMARC,
+    ARC,
     // Hitachi H8/300
-    EMH8300,
+    H8300,
     // Hitachi H8/300H
-    EMH8300H,
+    H8300H,
     // Hitachi H8S
-    EMH8S,
+    H8S,
     // Hitachi H8/500
-    EMH8500,
+    H8500,
     // Stanford MIPS-X
-    EMMIPSX,
+    MIPSX,
     // Motorola Coldfire
-    EMCOLDFIRE,
+    Coldfire,
     // Motorola M68HC12
-    EM68HC12,
+    M68HC12,
     // Fujitsu MMA Multimedia Accelerator
-    EMMMA,
+    MMA,
     // Siemens PCP
-    EMPCP,
+    PCP,
     // Sony nCPU embedded RISC
-    EMNCPU,
+    NCPU,
     // Denso NDR1 microprocessor
-    EMNDR1,
+    NDR1,
     // Motorola Start*Core processor
-    EMSTARCORE,
+    StarCore,
     // Toyota ME16 processor
-    EMME16,
+    ME16,
     // STMicroelectronic ST100 processor
-    EMST100,
+    ST100,
     // Advanced Logic Corp. TinyJ embedded processor
-    EMTINYJ,
+    TinyJ,
     // Advanced Micro Devices X86-64 processor
-    EMX8664,
+    X8664,
     // Sony DSP Processor
-    EMPDSP,
+    PSDP,
     // Digital Equipment Corp. PDP-10
-    EMPDP10,
+    PDP10,
     // Digital Equipment Corp. PDP-11
-    EMPDP11,
+    PDP11,
     // Siemens FX66 microcontroller
-    EMFX66,
+    FX66,
     // STMicroelectronics ST9+ 8/16 bit microcontroller
-    EMST9PLUS,
+    ST9Plus,
     // STMicroelectronics ST7 8-bit microcontroller
-    EMST7,
+    ST7,
     // Motorola MC68HC16 Microcontroller
-    EM68HC16,
+    MC68HC16,
     // Motorola MC68HC11 Microcontroller
-    EM68HC11,
+    MC68HC11,
     // Motorola MC68HC08 Microcontroller
-    EM68HC08,
+    MC68HC08,
     // Motorola MC68HC05 Microcontroller
-    EM68HC05,
+    MC68HC05,
     // Silicon Graphics SVx
-    EMSVX,
+    SVx,
     // STMicroelectronics ST19 8-bit cpu
-    EMST19,
+    ST19,
     // Digital VAX
-    EMVAX,
+    VAX,
     // Axis Communications 32-bit embedded processor
-    EMCRIS,
+    CRIS,
     // Infineon Technologies 32-bit embedded cpu
-    EMJAVELIN,
+    Javelin,
     // Element 14 64-bit DSP processor
-    EMFIREPATH,
+    Firepath,
     // LSI Logic's 16-bit DSP processor
-    EMZSP,
+    ZSP,
     // Donald Knuth's educational 64-bit processor
-    EMMMIX,
+    MMIX,
     // Harvard's machine-independent format
-    EMHUANY,
+    HUANY,
     // SiTera Prism
-    EMPRISM,
+    Prism,
     // Atmel AVR 8-bit microcontroller
-    EMAVR,
+    AVR,
     // Fujitsu FR30
-    EMFR30,
+    FR30,
     // Mitsubishi D10V
-    EMD10V,
+    D10V,
     // Mitsubishi D30V
-    EMD30V,
+    D30V,
     // Renesas V850 (formerly NEC V850)
-    EMV850,
+    V850,
     // Renesas M32R (formerly Mitsubishi M32R)
-    EMM32R,
+    M32R,
     // Matsushita MN10300
-    EMMN10300,
+    MN10300,
     // Matsushita MN10200
-    EMMN10200,
+    MN10200,
     // picoJava
-    EMPJ,
+    PicoJava,
     // OpenRISC 1000 32-bit embedded processor
-    EMOR1K,
+    OR1K,
     // ARC International ARCompact processor
-    EMARCCOMPACT,
+    ARCompact,
     // Tensilica Xtensa Architecture
-    EMXTENSA,
+    Xtensa,
     // Old Sunplus S+core7 backend magic number.
     // Written in the absence of an ABI.
-    EMSCOREOLD,
+    SCoreOld,
     // Alphamosaic VideoCore processor
-    EMVIDEOCORE,
+    VideoCore,
     // Thompson Multimedia General Purpose Processor
-    EMTMMGPP,
+    TMMGPP,
     // National Semiconductor 32000 series
-    EMNS32K,
+    NS32K,
     // Tenor Network TPC processor
-    EMTPC,
+    TPC,
     // Old value for picoJava. Deprecated.
-    EMPJOLD,
+    PicoJavaOld,
     // Trebia SNP 1000 processor
-    EMSNP1K,
+    SNP1K,
     // STMicroelectronics ST200 microcontroller
-    EMST200,
-    ANY(Elf64Half),
+    ST200,
+    Any(Elf64Half),
 }
 
-impl ELFMACHINE {
+impl Machine {
     pub fn to_bytes(&self) -> Elf64Half {
         match self {
-            Self::EMX8664 => 62,
-            Self::ANY(c) => *c,
+            Self::X8664 => 62,
+            Self::Any(c) => *c,
             _ => panic!("not implemented -> {:?}", self),
         }
     }
 }
 
-impl From<Elf64Half> for ELFMACHINE {
+impl From<Elf64Half> for Machine {
     fn from(bytes: Elf64Half) -> Self {
         match bytes {
-            62 => Self::EMX8664,
-            _ => Self::ANY(bytes),
+            62 => Self::X8664,
+            _ => Self::Any(bytes),
         }
     }
 }

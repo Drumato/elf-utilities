@@ -1,56 +1,55 @@
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum BIND {
+pub enum Bind {
     /// Local Symbol
-    LOCAL,
+    Local,
     /// Globbal Symbol
-    GLOBAL,
+    Global,
     /// Weak Symbol
-    WEAK,
+    Weak,
     /// Number of defined types
-    NUM,
+    Num,
     /// Start of OS-specific
-    LOOS,
+    LoOS,
     /// Unique Symbol
-    GNUUNIQUE,
+    GNUUnique,
     /// End of OS-specific
-    HIOS,
+    HiOS,
     /// Start of processor-specific
-    LOPROC,
+    LoProc,
     /// end of processor-specific
-    HIPROC,
+    HiProc,
     /// User defined value
-    ANY(u8),
+    Any(u8),
 }
 
-
-impl BIND {
+impl Bind {
     pub fn to_byte(&self) -> u8 {
         match self {
-            Self::LOCAL => 0,
-            Self::GLOBAL => 1,
-            Self::WEAK => 2,
-            Self::NUM => 3,
-            Self::LOOS|Self::GNUUNIQUE => 10,
-            Self::HIOS => 12,
-            Self::LOPROC => 13,
-            Self::HIPROC => 15,
-            Self::ANY(b) => *b,
+            Self::Local => 0,
+            Self::Global => 1,
+            Self::Weak => 2,
+            Self::Num => 3,
+            Self::LoOS | Self::GNUUnique => 10,
+            Self::HiOS => 12,
+            Self::LoProc => 13,
+            Self::HiProc => 15,
+            Self::Any(b) => *b,
         }
     }
 }
 
-impl From<u8> for BIND {
+impl From<u8> for Bind {
     fn from(byte: u8) -> Self {
         match byte {
-            0 => Self::LOCAL,
-            1 => Self::GLOBAL,
-            2 => Self::WEAK,
-            3 => Self::NUM,
-            10 => Self::LOPROC,
-            12 => Self::HIOS,
-            13 => Self::LOPROC,
-            15 => Self::HIPROC,
-            _ => Self::ANY(byte),
+            0 => Self::Local,
+            1 => Self::Global,
+            2 => Self::Weak,
+            3 => Self::Num,
+            10 => Self::LoProc,
+            12 => Self::HiOS,
+            13 => Self::LoProc,
+            15 => Self::HiProc,
+            _ => Self::Any(byte),
         }
     }
 }

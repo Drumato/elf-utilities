@@ -3,71 +3,71 @@
 use crate::*;
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum TYPE {
+pub enum Type {
     /// Program header table entry unused
-    NULL,
+    Null,
     /// Loadable program segment
-    LOAD,
+    Load,
     /// dynamic linking information
-    DYNAMIC,
+    Dynamic,
     /// Program interpreter
-    INTERP,
+    Interp,
     /// Auxiliary information
-    NOTE,
+    Note,
     /// Reserved
-    SHLIB,
+    ShLib,
     /// Entry for header table itself
-    PHDR,
+    Phdr,
     /// Thread-local storage segment
     TLS,
     /// Number of defined types
-    NUM,
+    Num,
     /// GCC .eh_frame_hdr segment
-    GNUEHFRAME,
+    GNUEHFrame,
     /// Indicates stack executability
-    GNUSTACK,
+    GNUStack,
     /// Read-only after relocation
-    GNURELRO,
+    GNURelRO,
     /// User-defined values
-    ANY(Elf64Word),
+    Any(Elf64Word),
 }
 
-impl TYPE {
+impl Type {
     pub fn to_bytes(&self) -> Elf64Word {
         match self {
-            Self::NULL => 0,
-            Self::LOAD => 1,
-            Self::DYNAMIC => 2,
-            Self::INTERP => 3,
-            Self::NOTE => 4,
-            Self::SHLIB => 5,
-            Self::PHDR => 6,
+            Self::Null => 0,
+            Self::Load => 1,
+            Self::Dynamic => 2,
+            Self::Interp => 3,
+            Self::Note => 4,
+            Self::ShLib => 5,
+            Self::Phdr => 6,
             Self::TLS => 7,
-            Self::NUM => 8,
-            Self::GNUEHFRAME => 0x6474e550,
-            Self::GNUSTACK => 0x6474e551,
-            Self::GNURELRO => 0x6474e552,
-            Self::ANY(c) => *c,
+            Self::Num => 8,
+            Self::GNUEHFrame => 0x6474e550,
+            Self::GNUStack => 0x6474e551,
+            Self::GNURelRO => 0x6474e552,
+            Self::Any(c) => *c,
         }
     }
 }
 
-impl From<Elf64Word> for TYPE {
+impl From<Elf64Word> for Type {
     fn from(bytes: Elf64Word) -> Self {
         match bytes {
-            0 => Self::NULL,
-            1 => Self::LOAD,
-            2 => Self::DYNAMIC,
-            3 => Self::INTERP,
-            4 => Self::NOTE,
-            5 => Self::SHLIB,
-            6 => Self::PHDR,
+            0 => Self::Null,
+            1 => Self::Load,
+            2 => Self::Dynamic,
+            3 => Self::Interp,
+            4 => Self::Note,
+            5 => Self::ShLib,
+            6 => Self::Phdr,
             7 => Self::TLS,
-            8 => Self::NUM,
-            0x6474e550 => Self::GNUEHFRAME,
-            0x6474e551 => Self::GNUSTACK,
-            0x6474e552 => Self::GNURELRO,
-            _ => Self::ANY(bytes),
+            8 => Self::Num,
+            0x6474e550 => Self::GNUEHFrame,
+            0x6474e551 => Self::GNUStack,
+            0x6474e552 => Self::GNURelRO,
+            _ => Self::Any(bytes),
         }
     }
 }
