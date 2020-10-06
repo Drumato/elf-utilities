@@ -18,6 +18,9 @@ pub struct Section64 {
 
     /// for rela symbol table
     pub rela_symbols: Option<Vec<relocation::Rela64>>,
+
+    /// for .dynamic
+    pub dynamics: Option<Vec<dynamic::Dyn64>>,
 }
 
 impl Section64 {
@@ -28,6 +31,7 @@ impl Section64 {
             bytes: None,
             symbols: None,
             rela_symbols: None,
+            dynamics: None,
         }
     }
 

@@ -63,13 +63,17 @@ fn read_elf64_sections(
 
             match sct_type {
                 section::Type::SymTab | section::Type::DynSym => {
-                    let symbols = parse_bytes_as_symbols(&sct, sct_start, buf)?;
+                    let symbols = parse_bytes_as_vec(&sct, sct_start, buf)?;
                     sct.symbols = Some(symbols);
                 }
 
                 section::Type::Rela => {
-                    let rela_symbols = parse_bytes_as_symbols(&sct, sct_start, buf)?;
+                    let rela_symbols = parse_bytes_as_vec(&sct, sct_start, buf)?;
                     sct.rela_symbols = Some(rela_symbols);
+                }
+                section::Type::Dynamic => {
+                    let dynamics = parse_bytes_as_vec(&sct, sct_start, buf)?;
+                    sct.dynamics = Some(dynamics);
                 }
 
                 section::Type::NoBits => {}
@@ -89,7 +93,7 @@ fn read_elf64_sections(
     Ok(sections)
 }
 
-fn parse_bytes_as_symbols<'a, T: serde::Deserialize<'a>>(
+fn parse_bytes_as_vec<'a, T: serde::Deserialize<'a>>(
     sct: &section::Section64,
     sct_start: usize,
     buf: &'a [u8],
@@ -296,6 +300,12 @@ mod parse_tests {
                 .unwrap(),
             "_ITM_deregisterTMCloneTable"
         );
+
+        assert_eq!(f.sections[21].header.get_type(), section::Type::Dynamic);
+        // assert_eq!(f.sections[21].dynamics.as_ref().unwrap().len(), 24);
+        assert_eq!(f.sections[21].dynamics.as_ref().unwrap()[1].get_type(), dynamic::EntryType::Init);
+        assert_eq!(f.sections[21].dynamics.as_ref().unwrap()[2].get_type(), dynamic::EntryType::Fini);
+
 
         assert_eq!(f.segments[0].header.get_type(), segment::Type::Phdr);
         assert_eq!(f.segments[0].header.p_flags, segment::PF_R);
