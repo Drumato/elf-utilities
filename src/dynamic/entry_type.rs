@@ -1,3 +1,5 @@
+use std::collections::hash_map::Entry;
+
 #[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub enum EntryType {
     /// Marks end of dynamic section
@@ -86,6 +88,8 @@ pub enum EntryType {
     VerNeedNum,
     /// GNU-style hash table
     GNUHash,
+    /// State Flags, See `Flags::*1`.
+    Flags1,
     /// The versioning entry types.
     VerSym,
     RelCount,
@@ -140,6 +144,7 @@ impl From<i64> for EntryType {
             0x6ffffff0 => EntryType::VerSym,
             0x6ffffff9 => EntryType::RelaCount,
             0x6ffffffa => EntryType::RelCount,
+            0x6ffffffb => EntryType::Flags1,
             0x6ffffffe => EntryType::VerNeed,
             0x6fffffff => EntryType::VerNeedNum,
             _ => EntryType::Any(v),
