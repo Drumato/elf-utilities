@@ -1,5 +1,3 @@
-use std::collections::hash_map::Entry;
-
 #[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub enum EntryType {
     /// Marks end of dynamic section
