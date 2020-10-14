@@ -303,9 +303,14 @@ mod parse_tests {
 
         assert_eq!(f.sections[21].header.get_type(), section::Type::Dynamic);
         // assert_eq!(f.sections[21].dynamics.as_ref().unwrap().len(), 24);
-        assert_eq!(f.sections[21].dynamics.as_ref().unwrap()[1].get_type(), dynamic::EntryType::Init);
-        assert_eq!(f.sections[21].dynamics.as_ref().unwrap()[2].get_type(), dynamic::EntryType::Fini);
-
+        assert_eq!(
+            f.sections[21].dynamics.as_ref().unwrap()[1].get_type(),
+            dynamic::EntryType::Init
+        );
+        assert_eq!(
+            f.sections[21].dynamics.as_ref().unwrap()[2].get_type(),
+            dynamic::EntryType::Fini
+        );
 
         assert_eq!(f.segments[0].header.get_type(), segment::Type::Phdr);
         assert_eq!(f.segments[0].header.p_flags, segment::PF_R);

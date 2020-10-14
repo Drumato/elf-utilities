@@ -117,12 +117,8 @@ impl ELF64 {
 
     fn clean_sections_offset(&mut self, base: u64) {
         let mut total = base;
-        let mut name_idx: usize = 1;
         for section in self.sections.iter_mut() {
             section.header.sh_offset += total;
-            section.header.sh_name += name_idx as u32;
-            name_idx = section.name.len() + 1;
-
             total += section.header.sh_size;
         }
     }
