@@ -2,6 +2,8 @@ use crate::*;
 use std::fs::File;
 use std::io::Read;
 
+use serde::{Deserialize, Serialize};
+
 use thiserror::Error as TError;
 
 #[derive(TError, Debug)]
@@ -18,6 +20,34 @@ pub enum ReadELFError {
     CantParseSymbol { k: Box<dyn std::error::Error> },
 }
 
+/// read 32bit ELF and construct `file::ELF32`
+pub fn read_elf32(file_path: &str) -> Result<file::ELF32, Box<dyn std::error::Error>> {
+    let mut f = File::open(file_path)?;
+    let mut buf = Vec::new();
+    let _ = f.read_to_end(&mut buf);
+
+    let _ = check_elf_magic(file_path, &buf[..4])?;
+
+    let elf_header: header::Ehdr32 = parse_elf_header(&buf);
+    let phdr_table_exists = elf_header.e_phnum != 0;
+
+    let mut elf_file = file::ELF32::new(elf_header);
+
+    /*
+    let sections = read_elf64_sections(&elf_file.ehdr, &buf)?;
+    elf_file.sections = sections;
+
+    if phdr_table_exists {
+        let segments = read_elf64_segments(&elf_file.ehdr, &buf)?;
+        elf_file.segments = segments;
+    }
+    set_sections_name_shstrtab(&mut elf_file);
+    set_symbols_name(&mut elf_file);
+    */
+
+    Ok(elf_file)
+}
+
 /// read 64bit ELF and construct `file::ELF64`
 pub fn read_elf64(file_path: &str) -> Result<file::ELF64, Box<dyn std::error::Error>> {
     let mut f = File::open(file_path)?;
@@ -26,7 +56,7 @@ pub fn read_elf64(file_path: &str) -> Result<file::ELF64, Box<dyn std::error::Er
 
     let _ = check_elf_magic(file_path, &buf[..4])?;
 
-    let elf_header = parse_elf64_header(&buf[..header::Ehdr64::size() as usize])?;
+    let elf_header: header::Ehdr64 = parse_elf_header(&buf);
     let phdr_table_exists = elf_header.e_phnum != 0;
 
     let mut elf_file = file::ELF64::new(elf_header);
@@ -93,7 +123,7 @@ fn read_elf64_sections(
     Ok(sections)
 }
 
-fn parse_bytes_as_vec<'a, T: serde::Deserialize<'a>>(
+fn parse_bytes_as_vec<'a, T: Deserialize<'a>>(
     sct: &section::Section64,
     sct_start: usize,
     buf: &'a [u8],
@@ -210,10 +240,10 @@ fn check_elf_magic(file_path: &str, buf: &[u8]) -> Result<(), Box<dyn std::error
     Ok(())
 }
 
-fn parse_elf64_header(buf: &[u8]) -> Result<header::Ehdr64, Box<dyn std::error::Error>> {
-    assert_eq!(buf.len(), header::Ehdr64::size() as usize);
-
-    header::Ehdr64::deserialize(buf, 0)
+fn parse_elf_header<T: header::ELFHeader>(
+    buf: &[u8],
+) -> T {
+    T::deserialize(buf)
 }
 
 #[cfg(test)]
@@ -236,13 +266,27 @@ mod parse_tests {
             0x57, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x38, 0x00,
             0x0c, 0x00, 0x40, 0x00, 0x2c, 0x00, 0x2b, 0x00,
         ];
-        let hdr_result = parse_elf64_header(&header_bytes);
-        assert!(hdr_result.is_ok());
-        let hdr_result = hdr_result.unwrap();
+        let hdr_result: header::Ehdr64 = parse_elf_header(&header_bytes);
 
         assert_eq!(hdr_result.get_type(), header::Type::Dyn);
         assert_eq!(hdr_result.e_entry, 0xe160);
         assert_eq!(hdr_result.e_shnum, 44);
+    }
+
+    #[test]
+    fn parse_elf32_header_test() {
+        let header_bytes = vec![
+            0x7f, 0x45, 0x4c, 0x46, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x03, 0x00, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, 0x90, 0x10, 0x00, 0x00,
+            0x34, 0x00, 0x00, 0x00, 0xe4, 0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x34, 0x00,
+            0x20, 0x00, 0x0c, 0x00, 0x28, 0x00, 0x1f, 0x00, 0x1e, 0x00, 0x06, 0x00, 0x34, 0x00,
+            0x00, 0x00, 0x40, 0x00, 0x2c, 0x00, 0x2b, 0x00,
+        ];
+        let hdr_result: header::Ehdr32 = parse_elf_header(&header_bytes);
+
+        assert_eq!(hdr_result.get_type(), header::Type::Dyn);
+        assert_eq!(hdr_result.e_entry, 0x1090);
+        assert_eq!(hdr_result.e_shnum, 31);
     }
 
     #[test]
