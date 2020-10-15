@@ -1,3 +1,4 @@
+#[allow(clippy::same_item_push)]
 pub fn build_string_table(strings: Vec<&str>) -> Vec<u8> {
     // ELFの文字列テーブルは null-byte + (name + null-byte) * n という形状に
     // それに合うようにバイト列を構築.
@@ -19,6 +20,7 @@ pub fn build_string_table(strings: Vec<&str>) -> Vec<u8> {
     string_table
 }
 
+#[allow(clippy::same_item_push)]
 pub fn build_byte_string_table(strings: Vec<Vec<u8>>) -> Vec<u8> {
     // ELFの文字列テーブルは null-byte + (name + null-byte) * n という形状に
     // それに合うようにバイト列を構築.

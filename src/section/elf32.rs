@@ -1,4 +1,4 @@
-//! Type definitions for 64-bit ELF binaries.
+//! Type definitions for 32-bit ELF binaries.
 
 use crate::section::{section_type, Section, Type};
 use crate::*;
@@ -6,20 +6,20 @@ use crate::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
-pub struct Section64 {
+pub struct Section32 {
     pub name: String,
-    pub header: Shdr64,
+    pub header: Shdr32,
 
     pub bytes: Vec<u8>,
 }
 
-impl Section for Section64 {
-    type Header = Shdr64;
-    type Symbol = symbol::Symbol64;
-    type Dyn = dynamic::Dyn64;
-    type Rela = relocation::Rela64;
+impl Section for Section32 {
+    type Header = Shdr32;
+    type Symbol = symbol::Symbol32;
+    type Dyn = dynamic::Dyn32;
+    type Rela = relocation::Rela32;
 
-    fn new(header: Shdr64) -> Self {
+    fn new(header: Shdr32) -> Self {
         Self {
             header,
             bytes: Vec::new(),
@@ -43,7 +43,7 @@ impl Section for Section64 {
     fn header_deserialize(
         buf: &[u8],
         header_start: usize,
-    ) -> Result<Shdr64, Box<dyn std::error::Error>> {
+    ) -> Result<Shdr32, Box<dyn std::error::Error>> {
         match bincode::deserialize(&buf[header_start..]) {
             Ok(header) => Ok(header),
             Err(e) => Err(e),
@@ -51,7 +51,7 @@ impl Section for Section64 {
     }
 
     fn header_size() -> usize {
-        Shdr64::size() as usize
+        Shdr32::size() as usize
     }
 
     fn size_zero(&self) -> bool {
@@ -74,7 +74,7 @@ impl Section for Section64 {
         self.header.sh_size as usize
     }
 
-    fn parse_bytes_as_symbols(&self, related_string_table: &Section64) -> Vec<Self::Symbol> {
+    fn parse_bytes_as_symbols(&self, related_string_table: &Section32) -> Vec<Self::Symbol> {
         let mut symbols: Vec<Self::Symbol> = self.parse_bytes_as_table();
 
         let symbol_strtab = related_string_table.bytes.clone();
@@ -100,7 +100,7 @@ impl Section for Section64 {
     }
 }
 
-impl Section64 {
+impl Section32 {
     pub fn write_byte_to_index(&mut self, byte: u8, idx: usize) {
         self.bytes[idx] = byte;
     }
@@ -132,20 +132,20 @@ impl Section64 {
 
 #[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
-pub struct Shdr64 {
-    pub sh_name: Elf64Word,
-    pub sh_type: Elf64Word,
-    pub sh_flags: Elf64Xword,
-    pub sh_addr: Elf64Addr,
-    pub sh_offset: Elf64Off,
-    pub sh_size: Elf64Xword,
-    pub sh_link: Elf64Word,
-    pub sh_info: Elf64Word,
-    pub sh_addralign: Elf64Xword,
-    pub sh_entsize: Elf64Xword,
+pub struct Shdr32 {
+    pub sh_name: Elf32Word,
+    pub sh_type: Elf32Word,
+    pub sh_flags: Elf32Word,
+    pub sh_addr: Elf32Addr,
+    pub sh_offset: Elf32Off,
+    pub sh_size: Elf32Word,
+    pub sh_link: Elf32Word,
+    pub sh_info: Elf32Word,
+    pub sh_addralign: Elf32Word,
+    pub sh_entsize: Elf32Word,
 }
 
-impl Default for Shdr64 {
+impl Default for Shdr32 {
     fn default() -> Self {
         Self {
             sh_name: 0,
@@ -163,9 +163,9 @@ impl Default for Shdr64 {
 }
 
 #[allow(dead_code)]
-impl Shdr64 {
-    pub fn size() -> Elf64Half {
-        0x40
+impl Shdr32 {
+    pub fn size() -> Elf32Half {
+        40
     }
 
     // getter
@@ -182,10 +182,10 @@ impl Shdr64 {
     /// # Examples
     ///
     /// ```
-    /// use elf_utilities::section::Shdr64;
-    /// let null_sct : Shdr64 = Default::default();
+    /// use elf_utilities::section::Shdr32;
+    /// let null_sct : Shdr32 = Default::default();
     ///
-    /// assert_eq!([0].repeat(Shdr64::size() as usize), null_sct.to_le_bytes());
+    /// assert_eq!([0].repeat(Shdr32::size() as usize), null_sct.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()

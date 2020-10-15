@@ -1,7 +1,8 @@
-use crate::{header, section, segment};
+use crate::{file, header, section, segment};
 use std::io::{BufWriter, Write};
 use std::os::unix::fs::OpenOptionsExt;
 
+#[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 #[repr(C)]
 pub struct ELF64 {
     pub ehdr: header::Ehdr64,
@@ -9,8 +10,12 @@ pub struct ELF64 {
     pub segments: Vec<segment::Segment64>,
 }
 
-impl ELF64 {
-    pub fn new(elf_header: header::Ehdr64) -> Self {
+impl file::ELF for ELF64 {
+    type Header = header::Ehdr64;
+    type Section = section::Section64;
+    type Segment = segment::Segment64;
+
+    fn new(elf_header: header::Ehdr64) -> Self {
         Self {
             ehdr: elf_header,
             sections: Vec::new(),
@@ -18,6 +23,22 @@ impl ELF64 {
         }
     }
 
+    fn sections_as_mut(&mut self) -> &mut Vec<section::Section64> {
+        &mut self.sections
+    }
+    fn update_sections(&mut self, sections: Vec<section::Section64>) {
+        self.sections = sections;
+    }
+    fn update_segments(&mut self, segments: Vec<segment::Segment64>) {
+        self.segments = segments;
+    }
+
+    fn header(&self) -> header::Ehdr64 {
+        self.ehdr
+    }
+}
+
+impl ELF64 {
     /// add a section with creating new entry of section table and etc.
     pub fn add_section(&mut self, sct: section::Section64) {
         // .shstrtab を追加する場合,先にヘッダを変更する必要がある.

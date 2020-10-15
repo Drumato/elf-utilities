@@ -4,35 +4,35 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
-pub struct Ehdr64 {
+pub struct Ehdr32 {
     pub e_ident: [u8; 16],
-    pub e_type: Elf64Half,
-    pub e_machine: Elf64Half,
-    pub e_version: Elf64Word,
-    pub e_entry: Elf64Addr,
-    pub e_phoff: Elf64Off,
-    pub e_shoff: Elf64Off,
-    pub e_flags: Elf64Word,
-    pub e_ehsize: Elf64Half,
-    pub e_phentsize: Elf64Half,
-    pub e_phnum: Elf64Half,
-    pub e_shentsize: Elf64Half,
-    pub e_shnum: Elf64Half,
-    pub e_shstrndx: Elf64Half,
+    pub e_type: Elf32Half,
+    pub e_machine: Elf32Half,
+    pub e_version: Elf32Word,
+    pub e_entry: Elf32Addr,
+    pub e_phoff: Elf32Off,
+    pub e_shoff: Elf32Off,
+    pub e_flags: Elf32Word,
+    pub e_ehsize: Elf32Half,
+    pub e_phentsize: Elf32Half,
+    pub e_phnum: Elf32Half,
+    pub e_shentsize: Elf32Half,
+    pub e_shnum: Elf32Half,
+    pub e_shstrndx: Elf32Half,
 }
 
-impl ELFHeader for Ehdr64 {
-    fn deserialize(buf: &[u8]) -> Ehdr64 {
-        bincode::deserialize(&buf[..Ehdr64::size() as usize]).unwrap()
+impl ELFHeader for Ehdr32 {
+    fn deserialize(buf: &[u8]) -> Self {
+        bincode::deserialize(&buf[..Ehdr32::size() as usize]).unwrap()
+    }
+    fn program_header_table_exists(&self) -> bool {
+        self.e_phnum != 0
     }
     fn section_number(&self) -> usize {
         self.e_shnum as usize
     }
     fn section_offset(&self) -> usize {
         self.e_shoff as usize
-    }
-    fn program_header_table_exists(&self) -> bool {
-        self.e_phnum != 0
     }
     fn segment_number(&self) -> usize {
         self.e_phnum as usize
@@ -45,7 +45,7 @@ impl ELFHeader for Ehdr64 {
     }
 }
 
-impl Default for Ehdr64 {
+impl Default for Ehdr32 {
     fn default() -> Self {
         Self {
             e_ident: [
@@ -69,9 +69,9 @@ impl Default for Ehdr64 {
     }
 }
 
-impl Ehdr64 {
+impl Ehdr32 {
     pub fn size() -> Elf64Half {
-        0x40
+        52
     }
 
     pub fn get_class(&self) -> class::Class {

@@ -66,9 +66,9 @@ pub enum Flag {
     Any(u64),
 }
 
-impl Flag{
+impl Flag {
     /// For DT_FLAGS
-    pub fn from_def(value: u64) -> Flag{
+    pub fn from_def(value: u64) -> Flag {
         match value {
             0x1 => Flag::Origin,
             0x2 => Flag::Symbolic,
@@ -79,8 +79,8 @@ impl Flag{
         }
     }
     /// For DT_FLAGS_1
-    pub fn from_1(value: u64) -> Flag{
-        match value{
+    pub fn from_1(value: u64) -> Flag {
+        match value {
             0x1 => Flag::Now1,
             0x2 => Flag::Global1,
             0x4 => Flag::Group1,
