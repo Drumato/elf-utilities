@@ -1,6 +1,6 @@
 //! Type definitions for 64-bit ELF binaries.
 
-use crate::section::section_type;
+use crate::section::{section_type, Section, Type};
 use crate::*;
 
 use serde::{Deserialize, Serialize};
@@ -23,18 +23,46 @@ pub struct Section64 {
     pub dynamics: Option<Vec<dynamic::Dyn64>>,
 }
 
-impl Section64 {
-    pub fn new(section_name: String, shdr: Shdr64) -> Self {
+impl Section for Section64{
+    type Header = Shdr64;
+
+    fn new(header: Shdr64) -> Self {
         Self {
-            name: section_name,
-            header: shdr,
+            header,
             bytes: None,
             symbols: None,
             rela_symbols: None,
             dynamics: None,
+            name: String::new(),
         }
     }
 
+    fn header_size() -> usize {
+        Shdr64::size() as usize
+    }
+
+    fn size_zero(&self) -> bool {
+        self.header.sh_size == 0
+    }
+
+    fn offset(&self) -> usize {
+        self.header.sh_offset as usize
+    }
+
+    fn section_type(&self) -> Type{
+        self.header.get_type()
+    }
+
+    fn entry_size(&self) -> usize {
+        self.header.sh_entsize as usize
+    }
+
+    fn section_size(&self) -> usize {
+        self.header.sh_size as usize
+    }
+}
+
+impl Section64 {
     pub fn write_byte_to_index(&mut self, byte: u8, idx: usize) {
         if let Some(ref mut bytes) = self.bytes {
             bytes[idx] = byte;
