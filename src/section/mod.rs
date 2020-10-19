@@ -1,16 +1,18 @@
 //! ELF section and section header utilities.
 
+pub use base::*;
+pub use elf32::*;
 pub use elf64::*;
 pub use section_flag::*;
 pub use section_type::*;
 pub use util::*;
-pub use base::*;
 
+mod base;
+mod elf32;
 mod elf64;
 mod section_flag;
 mod section_type;
 mod util;
-mod base;
 
 /// Undefined section
 pub const SHN_UNDEF: u16 = 0;

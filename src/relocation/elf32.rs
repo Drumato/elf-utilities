@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
-pub struct Rela64 {
-    r_offset: Elf64Addr,
-    r_info: Elf64Xword,
-    r_addend: Elf64Sxword,
+pub struct Rela32 {
+    r_offset: Elf32Addr,
+    r_info: Elf32Word,
+    r_addend: Elf32Sword,
 }
 
-impl Default for Rela64 {
+impl Default for Rela32 {
     fn default() -> Self {
         Self {
             r_offset: 0,
@@ -20,34 +20,34 @@ impl Default for Rela64 {
 }
 
 #[allow(dead_code)]
-impl Rela64 {
-    pub fn size() -> Elf64Xword {
-        24
+impl Rela32 {
+    pub fn size() -> Elf32Xword {
+        12
     }
-    pub fn get_sym(&self) -> Elf64Xword {
-        self.r_info >> 32
+    pub fn get_sym(&self) -> Elf32Word {
+        self.r_info >> 8
     }
-    pub fn get_type(&self) -> Elf64Xword {
-        self.r_info & 0xffffffff
+    pub fn get_type(&self) -> Elf32Word {
+        self.r_info & 0xff
     }
 
-    pub fn get_offset(&self) -> Elf64Addr {
+    pub fn get_offset(&self) -> Elf32Addr {
         self.r_offset
     }
-    pub fn get_info(&self) -> Elf64Xword {
+    pub fn get_info(&self) -> Elf32Word {
         self.r_info
     }
-    pub fn get_addend(&self) -> Elf64Sxword {
+    pub fn get_addend(&self) -> Elf32Sword {
         self.r_addend
     }
 
-    pub fn set_addend(&mut self, addend: Elf64Sxword) {
+    pub fn set_addend(&mut self, addend: Elf32Sword) {
         self.r_addend = addend;
     }
-    pub fn set_offset(&mut self, offset: Elf64Addr) {
+    pub fn set_offset(&mut self, offset: Elf32Addr) {
         self.r_offset = offset;
     }
-    pub fn set_info(&mut self, info: Elf64Xword) {
+    pub fn set_info(&mut self, info: Elf32Word) {
         self.r_info = info;
     }
 
@@ -56,10 +56,10 @@ impl Rela64 {
     /// # Examples
     ///
     /// ```
-    /// use elf_utilities::relocation::Rela64;
-    /// let null_rel : Rela64 = Default::default();
+    /// use elf_utilities::relocation::Rela32;
+    /// let null_rel : Rela32 = Default::default();
     ///
-    /// assert_eq!([0].repeat(Rela64::size() as usize), null_rel.to_le_bytes());
+    /// assert_eq!([0].repeat(Rela32::size() as usize), null_rel.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()
