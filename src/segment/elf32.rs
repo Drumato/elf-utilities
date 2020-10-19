@@ -1,4 +1,4 @@
-//! Type definitions for 64-bit ELF binaries.
+//! Type definitions for 32-bit ELF binaries.
 
 use crate::*;
 
@@ -6,21 +6,20 @@ use crate::segment::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Segment64 {
-    pub header: Phdr64,
+pub struct Segment32 {
+    pub header: Phdr32,
 }
+impl Segment for Segment32 {
+    type Header = Phdr32;
 
-impl Segment for Segment64 {
-    type Header = Phdr64;
-
-    fn new(header: Phdr64) -> Self {
+    fn new(header: Phdr32) -> Self {
         Self { header }
     }
 
     fn header_deserialize(
         buf: &[u8],
         header_start: usize,
-    ) -> Result<Phdr64, Box<dyn std::error::Error>> {
+    ) -> Result<Phdr32, Box<dyn std::error::Error>> {
         match bincode::deserialize(&buf[header_start..]) {
             Ok(header) => Ok(header),
             Err(e) => Err(e),
@@ -28,39 +27,45 @@ impl Segment for Segment64 {
     }
 
     fn header_size() -> usize {
-        Phdr64::size() as usize
+        Phdr32::size() as usize
+    }
+}
+
+impl Segment32 {
+    pub fn new(header: Phdr32) -> Self {
+        Self { header }
     }
 }
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Phdr64 {
+pub struct Phdr32 {
     /// Segment type
-    pub p_type: Elf64Word,
-
-    /// Segment flags
-    pub p_flags: Elf64Word,
+    pub p_type: Elf32Word,
 
     /// Segment file offset
-    pub p_offset: Elf64Off,
+    pub p_offset: Elf32Off,
 
     /// Segment virtual address
-    pub p_vaddr: Elf64Addr,
+    pub p_vaddr: Elf32Addr,
 
     /// Segment physical address
-    pub p_paddr: Elf64Addr,
+    pub p_paddr: Elf32Addr,
 
     /// Segment size in file
-    pub p_filesz: Elf64Xword,
+    pub p_filesz: Elf32Word,
 
     /// Segment size in memory
-    pub p_memsz: Elf64Xword,
+    pub p_memsz: Elf32Word,
+
+    /// Segment flags
+    pub p_flags: Elf32Word,
 
     /// Segment alignment
-    pub p_align: Elf64Xword,
+    pub p_align: Elf32Word,
 }
 
-impl Default for Phdr64 {
+impl Default for Phdr32 {
     fn default() -> Self {
         Self {
             p_type: 0,
@@ -75,9 +80,9 @@ impl Default for Phdr64 {
     }
 }
 
-impl Phdr64 {
-    pub fn size() -> Elf64Half {
-        0x38
+impl Phdr32 {
+    pub fn size() -> Elf32Half {
+        0x20
     }
 
     // getter
@@ -91,7 +96,7 @@ impl Phdr64 {
     /// ```
     /// use elf_utilities::segment;
     ///
-    /// let mut phdr : segment::Phdr64 = Default::default();
+    /// let mut phdr : segment::Phdr32 = Default::default();
     /// phdr.set_type(segment::Type::Load);
     ///
     /// assert_eq!(phdr.get_type(), segment::Type::Load);
@@ -105,10 +110,10 @@ impl Phdr64 {
     /// # Examples
     ///
     /// ```
-    /// use elf_utilities::segment::Phdr64;
-    /// let null_phdr : Phdr64 = Default::default();
+    /// use elf_utilities::segment::Phdr32;
+    /// let null_phdr : Phdr32 = Default::default();
     ///
-    /// assert_eq!([0].repeat(Phdr64::size() as usize), null_phdr.to_le_bytes());
+    /// assert_eq!([0].repeat(Phdr32::size() as usize), null_phdr.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()

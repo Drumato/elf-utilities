@@ -1,10 +1,14 @@
 //! ELF section and section header utilities.
 
+pub use base::*;
+pub use elf32::*;
 pub use elf64::*;
 pub use section_flag::*;
 pub use section_type::*;
 pub use util::*;
 
+mod base;
+mod elf32;
 mod elf64;
 mod section_flag;
 mod section_type;
