@@ -1,22 +1,14 @@
 use crate::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(
+    Default, Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize,
+)]
 #[repr(C)]
 pub struct Rela64 {
     r_offset: Elf64Addr,
     r_info: Elf64Xword,
     r_addend: Elf64Sxword,
-}
-
-impl Default for Rela64 {
-    fn default() -> Self {
-        Self {
-            r_offset: 0,
-            r_info: 0,
-            r_addend: 0,
-        }
-    }
 }
 
 #[allow(dead_code)]

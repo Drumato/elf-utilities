@@ -38,7 +38,7 @@ use serde::{Deserialize, Serialize};
 /// let sym_bytes = null_sym.to_le_bytes();
 /// assert_eq!(Symbol32::size() as usize, sym_bytes.len())
 /// ```
-#[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Symbol32 {
     /// Symbol name index.
@@ -64,20 +64,6 @@ pub struct Symbol32 {
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
     pub symbol_name: Option<String>,
-}
-
-impl Default for Symbol32 {
-    fn default() -> Self {
-        Self {
-            st_name: 0,
-            st_info: 0,
-            st_other: 0,
-            st_shndx: 0,
-            st_value: 0,
-            st_size: 0,
-            symbol_name: None,
-        }
-    }
 }
 
 #[allow(dead_code)]

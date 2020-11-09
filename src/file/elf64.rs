@@ -2,7 +2,7 @@ use crate::{file, header, section, segment};
 use std::io::{BufWriter, Write};
 use std::os::unix::fs::OpenOptionsExt;
 
-#[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 #[repr(C)]
 pub struct ELF64 {
     pub ehdr: header::Ehdr64,

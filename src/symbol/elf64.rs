@@ -38,7 +38,7 @@ use serde::{Deserialize, Serialize};
 /// let sym_bytes = null_sym.to_le_bytes();
 /// assert_eq!(Symbol64::size(),sym_bytes.len() as elf_utilities::Elf64Xword)
 /// ```
-#[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Symbol64 {
     /// Symbol name index.
@@ -64,20 +64,6 @@ pub struct Symbol64 {
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
     pub symbol_name: Option<String>,
-}
-
-impl Default for Symbol64 {
-    fn default() -> Self {
-        Self {
-            st_name: 0,
-            st_info: 0,
-            st_other: 0,
-            st_shndx: 0,
-            st_value: 0,
-            st_size: 0,
-            symbol_name: None,
-        }
-    }
 }
 
 #[allow(dead_code)]

@@ -1,7 +1,7 @@
 use crate::{file, header, section, segment};
 
 #[repr(C)]
-#[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct ELF32 {
     pub ehdr: header::Ehdr32,
     pub sections: Vec<section::Section32>,

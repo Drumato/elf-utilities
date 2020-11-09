@@ -1,7 +1,7 @@
 use crate::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Dyn64 {
     /// dynamic entry type

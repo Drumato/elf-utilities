@@ -5,7 +5,7 @@ use crate::*;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct Section64 {
     pub name: String,
     pub header: Shdr64,

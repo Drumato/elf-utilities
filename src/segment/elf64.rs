@@ -5,7 +5,9 @@ use crate::*;
 use crate::segment::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(
+    Default, Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize,
+)]
 pub struct Segment64 {
     pub header: Phdr64,
 }
