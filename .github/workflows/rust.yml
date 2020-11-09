@@ -22,10 +22,12 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: install tarpaulin
+      run: cargo install cargo-tarpaulin
+    - name: execute tarpaulin
+      run: cargo install cargo-tarpaulin
     - name: upload coverage
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run:
-        cargo install cargo-tarpaulin
-        cargo tarpaulin --out Xml
         bash <(curl -s https://codecov.io/bash) -X gcov -t $CODECOV_TOKEN
