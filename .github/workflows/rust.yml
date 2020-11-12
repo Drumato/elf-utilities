@@ -25,7 +25,7 @@ jobs:
     - name: install tarpaulin
       run: cargo install cargo-tarpaulin
     - name: execute tarpaulin
-      run: cargo install cargo-tarpaulin
+      run: cargo tarpaulin --out Xml
     - name: upload coverage
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
