@@ -1,4 +1,4 @@
-pub trait ELFHeader {
+pub(crate) trait ELFHeader {
     fn deserialize(buf: &[u8]) -> Self;
 
     fn program_header_table_exists(&self) -> bool;

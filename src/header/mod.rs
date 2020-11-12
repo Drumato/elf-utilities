@@ -8,6 +8,7 @@ mod machine;
 mod osabi;
 mod version;
 
+#[allow(unused_imports)]
 pub use base::*;
 pub use class::*;
 pub use data::*;

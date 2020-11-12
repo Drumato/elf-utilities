@@ -1,8 +1,8 @@
 use crate::section;
 
-pub trait Section {
+pub(crate) trait Section {
     type Header;
-    type Contents : Contents;
+    type Contents: Contents;
 
     fn new(header: Self::Header) -> Self;
     fn clone_contents(&self) -> Self::Contents;
@@ -31,7 +31,7 @@ pub trait Section {
     fn update_name(&mut self, name: String);
 }
 
-pub trait Contents {
+pub(crate) trait Contents {
     type Symbol;
     type Dyn;
     type Rela;

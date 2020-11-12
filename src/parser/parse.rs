@@ -1,8 +1,8 @@
 use crate::*;
 use header::ELFHeader;
+use section::{Contents, Section};
 use std::fs::File;
 use std::io::Read;
-use section::{Contents, Section};
 
 use thiserror::Error as TError;
 
@@ -20,8 +20,15 @@ pub enum ReadELFError {
     CantParseSymbol { k: Box<dyn std::error::Error> },
 }
 
+pub fn read_elf64(file_path: &str) -> Result<file::ELF64, Box<dyn std::error::Error>> {
+    read_elf(file_path)
+}
+pub fn read_elf32(file_path: &str) -> Result<file::ELF32, Box<dyn std::error::Error>> {
+    read_elf(file_path)
+}
+
 /// read ELF and construct `file::ELF`
-pub fn read_elf<F: file::ELF>(file_path: &str) -> Result<F, Box<dyn std::error::Error>> {
+fn read_elf<F: file::ELF>(file_path: &str) -> Result<F, Box<dyn std::error::Error>> {
     let mut f = File::open(file_path)?;
     let mut buf = Vec::new();
     let _ = f.read_to_end(&mut buf);
@@ -57,15 +64,16 @@ pub fn read_elf<F: file::ELF>(file_path: &str) -> Result<F, Box<dyn std::error::
 
     for idx in 0..elf_file.header().section_number() {
         if elf_file.sections_as_mut()[idx].section_type() != section::Type::SymTab
-            && elf_file.sections_as_mut()[idx].section_type() != section::Type::DynSym{
-                continue;
-            }
-        
+            && elf_file.sections_as_mut()[idx].section_type() != section::Type::DynSym
+        {
+            continue;
+        }
+
         let related_string_table_index = elf_file.sections_as_mut()[idx].section_link();
         let name_bytes = elf_file.sections_as_mut()[related_string_table_index].clone_raw_binary();
 
         let symbol_number = elf_file.sections_as_mut()[idx].symbol_number();
-        for sym_idx in 0..symbol_number{
+        for sym_idx in 0..symbol_number {
             elf_file.sections_as_mut()[idx].update_symbol_name(sym_idx, &name_bytes);
         }
     }
@@ -89,7 +97,8 @@ fn read_elf_sections<S: section::Section>(
 
         if section_type != section::Type::NoBits {
             let section_offset = sct.offset();
-            let section_raw_contents = buf[section_offset..section_offset + sct.section_size() as usize].to_vec();
+            let section_raw_contents =
+                buf[section_offset..section_offset + sct.section_size() as usize].to_vec();
             // とりあえずRawで保持しておいて，後で変換する
             sct.update_contents_from_raw_bytes(section_raw_contents);
         }

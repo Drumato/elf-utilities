@@ -1,5 +1,5 @@
 use crate::{header, section, segment};
-pub trait ELF {
+pub(crate) trait ELF {
     type Header: header::ELFHeader;
     type Section: section::Section;
     type Segment: segment::Segment;
