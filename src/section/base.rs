@@ -1,12 +1,15 @@
-use crate::section::Type;
+use crate::section;
 
 pub trait Section {
     type Header;
-    type Symbol;
-    type Dyn;
-    type Rela;
+    type Contents : Contents;
 
     fn new(header: Self::Header) -> Self;
+    fn clone_contents(&self) -> Self::Contents;
+    fn clone_raw_binary(&self) -> Vec<u8>;
+    fn update_contents_from_raw_bytes(&mut self, bytes: Vec<u8>);
+    fn symbol_number(&self) -> usize;
+    fn update_symbol_name(&mut self, sym_idx: usize, name_bytes: &[u8]);
 
     fn header_size() -> usize;
 
@@ -14,23 +17,27 @@ pub trait Section {
 
     fn offset(&self) -> usize;
     fn name_idx(&self) -> usize;
+    fn section_link(&self) -> usize;
 
-    fn section_type(&self) -> Type;
+    fn section_type(&self) -> section::Type;
 
     fn entry_size(&self) -> usize;
     fn section_size(&self) -> usize;
-    fn clone_contents(&self) -> Vec<u8>;
-
-    fn parse_bytes_as_symbols(&self, related_string_table: &Self) -> Vec<Self::Symbol>;
-    fn parse_bytes_as_dynamics(&self) -> Vec<Self::Dyn>;
-    fn parse_bytes_as_relas(&self) -> Vec<Self::Rela>;
-
     fn header_deserialize(
         buf: &[u8],
         header_start: usize,
     ) -> Result<Self::Header, Box<dyn std::error::Error>>;
 
-    fn update_contents(&mut self, contents: Vec<u8>);
-
     fn update_name(&mut self, name: String);
+}
+
+pub trait Contents {
+    type Symbol;
+    type Dyn;
+    type Rela;
+
+    fn clone_raw_binary(&self) -> Vec<u8>;
+    fn clone_symbols(&self) -> Vec<Self::Symbol>;
+    fn clone_dynamics(&self) -> Vec<Self::Dyn>;
+    fn clone_rela_symbols(&self) -> Vec<Self::Rela>;
 }

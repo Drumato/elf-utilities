@@ -2,6 +2,7 @@ use crate::*;
 use header::ELFHeader;
 use std::fs::File;
 use std::io::Read;
+use section::{Contents, Section};
 
 use thiserror::Error as TError;
 
@@ -54,28 +55,43 @@ pub fn read_elf<F: file::ELF>(file_path: &str) -> Result<F, Box<dyn std::error::
         elf_file.sections_as_mut(),
     );
 
+    for idx in 0..elf_file.header().section_number() {
+        if elf_file.sections_as_mut()[idx].section_type() != section::Type::SymTab
+            && elf_file.sections_as_mut()[idx].section_type() != section::Type::DynSym{
+                continue;
+            }
+        
+        let related_string_table_index = elf_file.sections_as_mut()[idx].section_link();
+        let name_bytes = elf_file.sections_as_mut()[related_string_table_index].clone_raw_binary();
+
+        let symbol_number = elf_file.sections_as_mut()[idx].symbol_number();
+        for sym_idx in 0..symbol_number{
+            elf_file.sections_as_mut()[idx].update_symbol_name(sym_idx, &name_bytes);
+        }
+    }
+
     Ok(elf_file)
 }
 
-fn read_elf_sections<T: section::Section>(
+fn read_elf_sections<S: section::Section>(
     section_number: usize,
     sht_offset: usize,
     buf: &[u8],
-) -> Result<Vec<T>, Box<dyn std::error::Error>> {
-    let mut sections: Vec<T> = Vec::new();
+) -> Result<Vec<S>, Box<dyn std::error::Error>> {
+    let mut sections: Vec<S> = Vec::new();
 
     for sct_idx in 0..section_number {
-        let header_start = sht_offset + T::header_size() * sct_idx;
-        let shdr = T::header_deserialize(buf, header_start)?;
+        let header_start = sht_offset + S::header_size() * sct_idx;
+        let shdr = S::header_deserialize(buf, header_start)?;
 
-        let mut sct = T::new(shdr);
+        let mut sct = S::new(shdr);
+        let section_type = sct.section_type();
 
-        if sct.section_type() != section::Type::NoBits {
+        if section_type != section::Type::NoBits {
             let section_offset = sct.offset();
-
-            sct.update_contents(
-                buf[section_offset..section_offset + sct.section_size() as usize].to_vec(),
-            );
+            let section_raw_contents = buf[section_offset..section_offset + sct.section_size() as usize].to_vec();
+            // とりあえずRawで保持しておいて，後で変換する
+            sct.update_contents_from_raw_bytes(section_raw_contents);
         }
 
         sections.push(sct);
@@ -115,7 +131,7 @@ fn set_sections_name_shstrtab<T: section::Section>(
         let name_idx = sections[idx].name_idx();
 
         let name_bytes = sections[shstrndx].clone_contents();
-        let name_bytes: Vec<u8> = name_bytes[name_idx as usize..]
+        let name_bytes: Vec<u8> = name_bytes.clone_raw_binary()[name_idx as usize..]
             .to_vec()
             .iter()
             .take_while(|byte| **byte != 0x00)
@@ -145,7 +161,6 @@ fn parse_elf_header<T: header::ELFHeader>(buf: &[u8]) -> T {
 #[cfg(test)]
 mod parse_tests {
     use super::*;
-    use section::Section;
 
     #[test]
     fn check_elf_magic_test() {
@@ -206,23 +221,23 @@ mod parse_tests {
         assert_eq!(f.sections[1].header.sh_addralign, 0x1);
         assert_eq!(f.sections[1].header.sh_flags, section::SHF_ALLOC);
         assert_eq!(f.sections[1].header.sh_size, 0x1c);
-        assert!(!f.sections[1].bytes.is_empty());
+        assert!(!f.sections[1].contents.clone_raw_binary().is_empty());
         assert_eq!(
-            f.sections[1].bytes.len(),
+            f.sections[1].contents.clone_raw_binary().len(),
             f.sections[1].header.sh_size as usize
         );
 
         assert_eq!(f.sections[2].header.get_type(), section::Type::Note);
         assert_eq!(f.sections[2].header.sh_addr, 0x338);
-        assert!(!f.sections[2].bytes.is_empty());
+        assert!(!f.sections[2].contents.clone_raw_binary().is_empty());
         assert_eq!(
-            f.sections[2].bytes.len(),
+            f.sections[2].contents.clone_raw_binary().len(),
             f.sections[2].header.sh_size as usize
         );
 
-        let rela_symbols = f.sections[10].parse_bytes_as_relas();
-        let symbols = f.sections[26].parse_bytes_as_symbols(&f.sections[27]);
-        let dynamics = f.sections[21].parse_bytes_as_dynamics();
+        let rela_symbols = f.sections[10].contents.clone_rela_symbols();
+        let symbols = f.sections[26].contents.clone_symbols();
+        let dynamics = f.sections[21].contents.clone_dynamics();
 
         assert_eq!(f.sections[10].header.get_type(), section::Type::Rela);
         assert_eq!(rela_symbols.len(), 8);
