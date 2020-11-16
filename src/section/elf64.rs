@@ -7,9 +7,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub enum Contents64 {
+    /// almost section's data
     Raw(Vec<u8>),
+    /// symbol table's representation
     Symbols(Vec<symbol::Symbol64>),
+    /// relocation symbol table's representation
     RelaSymbols(Vec<relocation::Rela64>),
+    /// dynamic information's representation
     Dynamics(Vec<dynamic::Dyn64>),
 }
 
@@ -238,15 +242,25 @@ impl Section64 {
 #[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Shdr64 {
+    /// Section name, index in string tbl
     pub sh_name: Elf64Word,
+    /// Type of section
     pub sh_type: Elf64Word,
+    /// Miscellaneous section attributes 
     pub sh_flags: Elf64Xword,
+    ///  Section virtual addr at execution
     pub sh_addr: Elf64Addr,
+    /// Section file offset
     pub sh_offset: Elf64Off,
+    /// Size of section in bytes
     pub sh_size: Elf64Xword,
+    /// Index of another section
     pub sh_link: Elf64Word,
+    /// Additional section information 
     pub sh_info: Elf64Word,
+    /// Section alignment
     pub sh_addralign: Elf64Xword,
+    /// Entry size if section holds table
     pub sh_entsize: Elf64Xword,
 }
 

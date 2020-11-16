@@ -6,8 +6,11 @@ use serde::{Deserialize, Serialize};
 )]
 #[repr(C)]
 pub struct Rela32 {
+    /// Location at which to apply the action
     r_offset: Elf32Addr,
+    /// index and type of relocation
     r_info: Elf32Word,
+    /// Constant addend used to compute value
     r_addend: Elf32Sword,
 }
 

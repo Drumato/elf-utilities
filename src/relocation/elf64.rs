@@ -6,8 +6,11 @@ use serde::{Deserialize, Serialize};
 )]
 #[repr(C)]
 pub struct Rela64 {
+    /// Location at which to apply the action
     r_offset: Elf64Addr,
+    /// index and type of relocation
     r_info: Elf64Xword,
+    /// Constant addend used to compute value
     r_addend: Elf64Sxword,
 }
 

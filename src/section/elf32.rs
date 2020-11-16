@@ -6,12 +6,18 @@ use section::Section;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+/// section's contents
 pub enum Contents32 {
+    /// almost section's data
     Raw(Vec<u8>),
+    /// symbol table's representation
     Symbols(Vec<symbol::Symbol32>),
+    /// relocation symbol table's representation
     RelaSymbols(Vec<relocation::Rela32>),
+    /// dynamic information's representation
     Dynamics(Vec<dynamic::Dyn32>),
 }
+
 impl section::Contents for Contents32{
     type Symbol = symbol::Symbol32;
     type Dyn = dynamic::Dyn32;
@@ -41,7 +47,6 @@ impl section::Contents for Contents32{
             _ => panic!("cannot call 'clone_rela_symbols' without Contents32::RelaSymbols"),
         }
     }
-    
 }
 
 impl Default for Contents32{
@@ -240,15 +245,25 @@ impl Section32 {
 #[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Shdr32 {
+    /// Section name, index in string tbl
     pub sh_name: Elf32Word,
+    /// Type of section
     pub sh_type: Elf32Word,
+    /// Miscellaneous section attributes 
     pub sh_flags: Elf32Word,
+    ///  Section virtual addr at execution
     pub sh_addr: Elf32Addr,
+    /// Section file offset
     pub sh_offset: Elf32Off,
+    /// Size of section in bytes
     pub sh_size: Elf32Word,
+    /// Index of another section
     pub sh_link: Elf32Word,
+    /// Additional section information 
     pub sh_info: Elf32Word,
+    /// Section alignment
     pub sh_addralign: Elf32Word,
+    /// Entry size if section holds table
     pub sh_entsize: Elf32Word,
 }
 
@@ -296,5 +311,42 @@ impl Shdr32 {
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()
+    }
+}
+
+#[cfg(test)]
+mod elf32_tests{
+    use super::*;
+
+    #[test]
+    fn contents32_test() {
+        use section::Contents;
+
+        let raw = Contents32::default();
+        assert_eq!(Vec::new() as Vec<u8>, raw.clone_raw_binary());
+
+        let syms = Contents32::Symbols(Default::default());
+        assert_eq!(Vec::new() as Vec<symbol::Symbol32>, syms.clone_symbols());
+
+        let dyns = Contents32::Dynamics(Default::default());
+        assert_eq!(Vec::new() as Vec<dynamic::Dyn32>, dyns.clone_dynamics());
+
+        let relas = Contents32::RelaSymbols(Default::default());
+        assert_eq!(Vec::new() as Vec<relocation::Rela32>, relas.clone_rela_symbols());
+    }
+
+    #[test]
+    fn section32_test() {
+        let sct = Section32::new_null_section();
+
+        assert_eq!(
+            vec![0x00; Shdr32::size() as usize],
+            sct.header.to_le_bytes(),
+        );
+
+        assert_eq!(
+            Vec::new() as Vec<u8>,
+            sct.to_le_bytes(),
+        );
     }
 }
