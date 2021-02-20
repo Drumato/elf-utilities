@@ -37,7 +37,4 @@ pub(crate) trait Contents {
     type Rela;
 
     fn clone_raw_binary(&self) -> Vec<u8>;
-    fn clone_symbols(&self) -> Vec<Self::Symbol>;
-    fn clone_dynamics(&self) -> Vec<Self::Dyn>;
-    fn clone_rela_symbols(&self) -> Vec<Self::Rela>;
 }

@@ -18,7 +18,7 @@ pub enum Contents32 {
     Dynamics(Vec<dynamic::Dyn32>),
 }
 
-impl section::Contents for Contents32{
+impl section::Contents for Contents32 {
     type Symbol = symbol::Symbol32;
     type Dyn = dynamic::Dyn32;
     type Rela = relocation::Rela32;
@@ -29,28 +29,10 @@ impl section::Contents for Contents32{
             _ => panic!("cannot call 'clone_raw_binary' without Contents32::Raw"),
         }
     }
-    fn clone_symbols(&self) -> Vec<Self::Symbol> {
-        match self {
-            Contents32::Symbols(syms) => syms.clone(),
-            _ => panic!("cannot call 'clone_symbols' without Contents32::Symbols"),
-        }
-    }
-    fn clone_dynamics(&self) -> Vec<Self::Dyn> {
-        match self {
-            Contents32::Dynamics(dynamics) => dynamics.clone(),
-            _ => panic!("cannot call 'clone_dynamics' without Contents32::Dynamics"),
-        }
-    }
-    fn clone_rela_symbols(&self) -> Vec<Self::Rela> {
-        match self {
-            Contents32::RelaSymbols(rela_syms) => rela_syms.clone(),
-            _ => panic!("cannot call 'clone_rela_symbols' without Contents32::RelaSymbols"),
-        }
-    }
 }
 
-impl Default for Contents32{
-    fn default() -> Self{
+impl Default for Contents32 {
+    fn default() -> Self {
         Contents32::Raw(Default::default())
     }
 }
@@ -73,28 +55,29 @@ impl section::Section for Section32 {
             name: String::new(),
         }
     }
-    fn clone_contents(&self) -> Contents32{
+    fn clone_contents(&self) -> Contents32 {
         self.contents.clone()
     }
-    fn clone_raw_binary(&self) -> Vec<u8>{
-        match &self.contents{
+    fn clone_raw_binary(&self) -> Vec<u8> {
+        match &self.contents {
             Contents32::Raw(bytes) => bytes.clone(),
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
-    fn update_symbol_name(&mut self, sym_idx: usize, name_bytes: &[u8]){
-        match self.contents{
+    fn update_symbol_name(&mut self, sym_idx: usize, name_bytes: &[u8]) {
+        match self.contents {
             Contents32::Symbols(ref mut syms) => {
                 let name_idx = syms[sym_idx].st_name as usize;
 
                 let name_bytes: Vec<u8> = name_bytes[name_idx as usize..]
-                .to_vec()
-                .iter()
-                .take_while(|byte| **byte != 0x00)
-                .copied()
-                .collect();
+                    .to_vec()
+                    .iter()
+                    .take_while(|byte| **byte != 0x00)
+                    .copied()
+                    .collect();
 
-                syms[sym_idx].symbol_name = Some(std::str::from_utf8(&name_bytes).unwrap().to_string());
+                syms[sym_idx].symbol_name =
+                    Some(std::str::from_utf8(&name_bytes).unwrap().to_string());
             }
             _ => unreachable!(),
         }
@@ -115,13 +98,13 @@ impl section::Section for Section32 {
         }
     }
 
-    fn symbol_number(&self) -> usize{
+    fn symbol_number(&self) -> usize {
         match &self.contents {
             Contents32::Symbols(syms) => syms.len(),
             _ => unreachable!(),
         }
     }
-    fn section_link(&self) -> usize{
+    fn section_link(&self) -> usize {
         self.header.sh_link as usize
     }
     fn header_size() -> usize {
@@ -149,20 +132,20 @@ impl section::Section for Section32 {
     }
 
     fn update_contents_from_raw_bytes(&mut self, bytes: Vec<u8>) {
-        match self.header.get_type(){
+        match self.header.get_type() {
             section::Type::Dynamic => {
                 self.contents = Contents32::Dynamics(self.parse_bytes_as_dynamics(bytes));
-            },
+            }
             section::Type::SymTab | section::Type::DynSym => {
                 self.contents = Contents32::Symbols(self.parse_bytes_as_symbols(bytes));
-            },
+            }
             section::Type::Rela => {
                 self.contents = Contents32::RelaSymbols(self.parse_bytes_as_rela_symbols(bytes));
-            },
-            
+            }
+
             _ => {
                 self.contents = Contents32::Raw(bytes);
-            },
+            }
         }
     }
 }
@@ -178,21 +161,21 @@ impl Section32 {
                     bytes.append(&mut sym.to_le_bytes());
                 }
                 bytes
-            },
+            }
             Contents32::RelaSymbols(rela_syms) => {
                 let mut bytes = Vec::new();
                 for sym in rela_syms.iter() {
                     bytes.append(&mut sym.to_le_bytes());
                 }
                 bytes
-            },
+            }
             Contents32::Dynamics(dynamics) => {
                 let mut bytes = Vec::new();
                 for sym in dynamics.iter() {
                     bytes.append(&mut sym.to_le_bytes());
                 }
                 bytes
-            },
+            }
         }
     }
 
@@ -203,20 +186,20 @@ impl Section32 {
     fn parse_bytes_as_rela_symbols(&self, bytes: Vec<u8>) -> Vec<relocation::Rela32> {
         let entry_number = self.header.sh_size as usize / self.header.sh_entsize as usize;
         let mut table = Vec::new();
-    
+
         for idx in 0..entry_number {
             let start = idx * self.header.sh_entsize as usize;
             let end = (idx + 1) * self.header.sh_entsize as usize;
             let entry = bincode::deserialize(&bytes[start..end]).unwrap();
             table.push(entry);
         }
-    
+
         table
     }
     fn parse_bytes_as_dynamics(&self, bytes: Vec<u8>) -> Vec<dynamic::Dyn32> {
         let entry_number = self.header.sh_size as usize / self.header.sh_entsize as usize;
         let mut table = Vec::new();
-    
+
         for idx in 0..entry_number {
             let start = idx * self.header.sh_entsize as usize;
             let end = (idx + 1) * self.header.sh_entsize as usize;
@@ -224,20 +207,20 @@ impl Section32 {
             let entry = bincode::deserialize(&bytes[start..end]).unwrap();
             table.push(entry);
         }
-    
+
         table
     }
     fn parse_bytes_as_symbols(&self, bytes: Vec<u8>) -> Vec<symbol::Symbol32> {
         let entry_number = self.header.sh_size as usize / self.header.sh_entsize as usize;
         let mut table = Vec::new();
-    
+
         for idx in 0..entry_number {
             let start = idx * self.header.sh_entsize as usize;
             let end = (idx + 1) * self.header.sh_entsize as usize;
             let entry = bincode::deserialize(&bytes[start..end]).unwrap();
             table.push(entry);
         }
-    
+
         table
     }
 }
@@ -249,7 +232,7 @@ pub struct Shdr32 {
     pub sh_name: Elf32Word,
     /// Type of section
     pub sh_type: Elf32Word,
-    /// Miscellaneous section attributes 
+    /// Miscellaneous section attributes
     pub sh_flags: Elf32Word,
     ///  Section virtual addr at execution
     pub sh_addr: Elf32Addr,
@@ -259,7 +242,7 @@ pub struct Shdr32 {
     pub sh_size: Elf32Word,
     /// Index of another section
     pub sh_link: Elf32Word,
-    /// Additional section information 
+    /// Additional section information
     pub sh_info: Elf32Word,
     /// Section alignment
     pub sh_addralign: Elf32Word,
@@ -315,25 +298,8 @@ impl Shdr32 {
 }
 
 #[cfg(test)]
-mod elf32_tests{
+mod elf32_tests {
     use super::*;
-
-    #[test]
-    fn contents32_test() {
-        use section::Contents;
-
-        let raw = Contents32::default();
-        assert_eq!(Vec::new() as Vec<u8>, raw.clone_raw_binary());
-
-        let syms = Contents32::Symbols(Default::default());
-        assert_eq!(Vec::new() as Vec<symbol::Symbol32>, syms.clone_symbols());
-
-        let dyns = Contents32::Dynamics(Default::default());
-        assert_eq!(Vec::new() as Vec<dynamic::Dyn32>, dyns.clone_dynamics());
-
-        let relas = Contents32::RelaSymbols(Default::default());
-        assert_eq!(Vec::new() as Vec<relocation::Rela32>, relas.clone_rela_symbols());
-    }
 
     #[test]
     fn section32_test() {
@@ -344,9 +310,6 @@ mod elf32_tests{
             sct.header.to_le_bytes(),
         );
 
-        assert_eq!(
-            Vec::new() as Vec<u8>,
-            sct.to_le_bytes(),
-        );
+        assert_eq!(Vec::new() as Vec<u8>, sct.to_le_bytes(),);
     }
 }

@@ -169,6 +169,8 @@ fn parse_elf_header<T: header::ELFHeader>(buf: &[u8]) -> T {
 
 #[cfg(test)]
 mod parse_tests {
+    use crate::section::Contents64;
+
     use super::*;
 
     #[test]
@@ -230,38 +232,48 @@ mod parse_tests {
         assert_eq!(f.sections[1].header.sh_addralign, 0x1);
         assert_eq!(f.sections[1].header.sh_flags, section::SHF_ALLOC);
         assert_eq!(f.sections[1].header.sh_size, 0x1c);
-        assert!(!f.sections[1].contents.clone_raw_binary().is_empty());
-        assert_eq!(
-            f.sections[1].contents.clone_raw_binary().len(),
-            f.sections[1].header.sh_size as usize
+        assert!(
+            matches!(&f.sections[1].contents, Contents64::Raw(x) if x.len() == f.sections[1].header.sh_size as usize )
         );
 
         assert_eq!(f.sections[2].header.get_type(), section::Type::Note);
         assert_eq!(f.sections[2].header.sh_addr, 0x338);
-        assert!(!f.sections[2].contents.clone_raw_binary().is_empty());
-        assert_eq!(
-            f.sections[2].contents.clone_raw_binary().len(),
-            f.sections[2].header.sh_size as usize
+        assert!(
+            matches!(&f.sections[2].contents, Contents64::Raw(x) if x.len() == f.sections[2].header.sh_size as usize )
         );
-
-        let rela_symbols = f.sections[10].contents.clone_rela_symbols();
-        let symbols = f.sections[26].contents.clone_symbols();
-        let dynamics = f.sections[21].contents.clone_dynamics();
 
         assert_eq!(f.sections[10].header.get_type(), section::Type::Rela);
-        assert_eq!(rela_symbols.len(), 8);
+        assert!(matches!(
+            f.sections[10].contents,
+            Contents64::RelaSymbols(_)
+        ));
         assert_eq!(f.sections[26].header.get_type(), section::Type::SymTab);
-        assert_eq!(symbols.len(), 62);
-        assert!(symbols[26].symbol_name.is_some());
-        assert_eq!(symbols[26].symbol_name.as_ref().unwrap(), "crtstuff.c");
-        assert_eq!(
-            symbols[45].symbol_name.as_ref().unwrap(),
-            "_ITM_deregisterTMCloneTable"
-        );
+        assert!(matches!(
+            &f.sections[26].contents,
+            Contents64::Symbols(x) if x.len() == 62
+        ));
+        assert!(matches!(
+            &f.sections[26].contents,
+            Contents64::Symbols(x) if x[26].symbol_name.is_some()
+        ));
+        assert!(matches!(
+            &f.sections[26].contents,
+            Contents64::Symbols(x) if x[26].symbol_name.as_ref().unwrap() == "crtstuff.c"
+        ));
+        assert!(matches!(
+            &f.sections[26].contents,
+            Contents64::Symbols(x) if x[45].symbol_name.as_ref().unwrap() == "_ITM_deregisterTMCloneTable"
+        ));
 
         assert_eq!(f.sections[21].header.get_type(), section::Type::Dynamic);
-        assert_eq!(dynamics[1].get_type(), dynamic::EntryType::Init);
-        assert_eq!(dynamics[2].get_type(), dynamic::EntryType::Fini);
+        assert!(matches!(
+            &f.sections[21].contents,
+            Contents64::Dynamics(x) if x[1].get_type() == dynamic::EntryType::Init
+        ));
+        assert!(matches!(
+            &f.sections[21].contents,
+            Contents64::Dynamics(x) if x[2].get_type() == dynamic::EntryType::Fini
+        ));
 
         assert_eq!(f.segments[0].header.get_type(), segment::Type::Phdr);
         assert_eq!(f.segments[0].header.p_flags, segment::PF_R);

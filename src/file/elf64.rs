@@ -1,3 +1,5 @@
+use section::Section64;
+
 use crate::{file, header, section, segment};
 use std::io::{BufWriter, Write};
 use std::os::unix::fs::OpenOptionsExt;
@@ -40,7 +42,7 @@ impl file::ELF for ELF64 {
 
 impl ELF64 {
     /// add a section with creating new entry of section table and etc.
-    pub fn add_section(&mut self, sct: section::Section64) {
+    pub fn add_section(&mut self, sct: Section64) {
         // .shstrtab を追加する場合,先にヘッダを変更する必要がある.
         let is_section_name_table = sct.name == ".shstrtab";
 

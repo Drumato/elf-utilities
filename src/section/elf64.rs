@@ -9,11 +9,11 @@ use serde::{Deserialize, Serialize};
 pub enum Contents64 {
     /// almost section's data
     Raw(Vec<u8>),
-    /// symbol table's representation
+    /// symbol table
     Symbols(Vec<symbol::Symbol64>),
-    /// relocation symbol table's representation
+    /// relocation symbol table
     RelaSymbols(Vec<relocation::Rela64>),
-    /// dynamic information's representation
+    /// dynamic information
     Dynamics(Vec<dynamic::Dyn64>),
 }
 
@@ -21,28 +21,11 @@ impl section::Contents for Contents64 {
     type Symbol = symbol::Symbol64;
     type Dyn = dynamic::Dyn64;
     type Rela = relocation::Rela64;
+
     fn clone_raw_binary(&self) -> Vec<u8> {
         match self {
             Contents64::Raw(bytes) => bytes.clone(),
             _ => panic!("cannot call 'clone_raw_binary' without Contents64::Raw"),
-        }
-    }
-    fn clone_symbols(&self) -> Vec<Self::Symbol> {
-        match self {
-            Contents64::Symbols(syms) => syms.clone(),
-            _ => panic!("cannot call 'clone_symbols' without Contents64::Symbols"),
-        }
-    }
-    fn clone_dynamics(&self) -> Vec<Self::Dyn> {
-        match self {
-            Contents64::Dynamics(dynamics) => dynamics.clone(),
-            _ => panic!("cannot call 'clone_dynamics' without Contents64::Dynamics"),
-        }
-    }
-    fn clone_rela_symbols(&self) -> Vec<Self::Rela> {
-        match self {
-            Contents64::RelaSymbols(rela_syms) => rela_syms.clone(),
-            _ => panic!("cannot call 'clone_rela_symbols' without Contents64::RelaSymbols"),
         }
     }
 }
@@ -66,23 +49,23 @@ impl section::Section for Section64 {
             name: String::new(),
         }
     }
-    fn clone_contents(&self) -> Contents64{
+    fn clone_contents(&self) -> Contents64 {
         self.contents.clone()
     }
     fn update_contents_from_raw_bytes(&mut self, bytes: Vec<u8>) {
-        match self.header.get_type(){
+        match self.header.get_type() {
             section::Type::Dynamic => {
                 self.contents = Contents64::Dynamics(self.parse_bytes_as_dynamics(bytes));
-            },
+            }
             section::Type::SymTab | section::Type::DynSym => {
                 self.contents = Contents64::Symbols(self.parse_bytes_as_symbols(bytes));
-            },
+            }
             section::Type::Rela => {
                 self.contents = Contents64::RelaSymbols(self.parse_bytes_as_rela_symbols(bytes));
-            },
+            }
             _ => {
                 self.contents = Contents64::Raw(bytes);
-            },
+            }
         }
     }
     fn name_idx(&self) -> usize {
@@ -91,25 +74,26 @@ impl section::Section for Section64 {
     fn update_name(&mut self, name: String) {
         self.name = name;
     }
-    fn clone_raw_binary(&self) -> Vec<u8>{
-        match &self.contents{
+    fn clone_raw_binary(&self) -> Vec<u8> {
+        match &self.contents {
             Contents64::Raw(bytes) => bytes.clone(),
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
-    fn update_symbol_name(&mut self, sym_idx: usize, name_bytes: &[u8]){
-        match self.contents{
+    fn update_symbol_name(&mut self, sym_idx: usize, name_bytes: &[u8]) {
+        match self.contents {
             Contents64::Symbols(ref mut syms) => {
                 let name_idx = syms[sym_idx].st_name as usize;
 
                 let name_bytes: Vec<u8> = name_bytes[name_idx as usize..]
-                .to_vec()
-                .iter()
-                .take_while(|byte| **byte != 0x00)
-                .copied()
-                .collect();
+                    .to_vec()
+                    .iter()
+                    .take_while(|byte| **byte != 0x00)
+                    .copied()
+                    .collect();
 
-                syms[sym_idx].symbol_name = Some(std::str::from_utf8(&name_bytes).unwrap().to_string());
+                syms[sym_idx].symbol_name =
+                    Some(std::str::from_utf8(&name_bytes).unwrap().to_string());
             }
             _ => unreachable!(),
         }
@@ -125,18 +109,17 @@ impl section::Section for Section64 {
         }
     }
 
-    
-    fn symbol_number(&self) -> usize{
+    fn symbol_number(&self) -> usize {
         match &self.contents {
             Contents64::Symbols(syms) => syms.len(),
             _ => unreachable!(),
         }
     }
-    
-    fn section_link(&self) -> usize{
+
+    fn section_link(&self) -> usize {
         self.header.sh_link as usize
     }
-    
+
     fn header_size() -> usize {
         Shdr64::size() as usize
     }
@@ -180,61 +163,61 @@ impl Section64 {
                     bytes.append(&mut sym.to_le_bytes());
                 }
                 bytes
-            },
+            }
             Contents64::RelaSymbols(rela_syms) => {
                 let mut bytes = Vec::new();
                 for sym in rela_syms.iter() {
                     bytes.append(&mut sym.to_le_bytes());
                 }
                 bytes
-            },
+            }
             Contents64::Dynamics(dynamics) => {
                 let mut bytes = Vec::new();
                 for sym in dynamics.iter() {
                     bytes.append(&mut sym.to_le_bytes());
                 }
                 bytes
-            },
+            }
         }
     }
 
     fn parse_bytes_as_rela_symbols(&self, bytes: Vec<u8>) -> Vec<relocation::Rela64> {
         let entry_number = self.header.sh_size as usize / self.header.sh_entsize as usize;
         let mut table = Vec::new();
-    
+
         for idx in 0..entry_number {
             let start = idx * self.header.sh_entsize as usize;
             let end = (idx + 1) * self.header.sh_entsize as usize;
             let entry = bincode::deserialize(&bytes[start..end]).unwrap();
             table.push(entry);
         }
-    
+
         table
     }
     fn parse_bytes_as_dynamics(&self, bytes: Vec<u8>) -> Vec<dynamic::Dyn64> {
         let entry_number = self.header.sh_size as usize / self.header.sh_entsize as usize;
         let mut table = Vec::new();
-    
+
         for idx in 0..entry_number {
             let start = idx * self.header.sh_entsize as usize;
             let end = (idx + 1) * self.header.sh_entsize as usize;
             let entry = bincode::deserialize(&bytes[start..end]).unwrap();
             table.push(entry);
         }
-    
+
         table
     }
     fn parse_bytes_as_symbols(&self, bytes: Vec<u8>) -> Vec<symbol::Symbol64> {
         let entry_number = self.header.sh_size as usize / self.header.sh_entsize as usize;
         let mut table = Vec::new();
-    
+
         for idx in 0..entry_number {
             let start = idx * self.header.sh_entsize as usize;
             let end = (idx + 1) * self.header.sh_entsize as usize;
             let entry = bincode::deserialize(&bytes[start..end]).unwrap();
             table.push(entry);
         }
-    
+
         table
     }
 }
@@ -246,7 +229,7 @@ pub struct Shdr64 {
     pub sh_name: Elf64Word,
     /// Type of section
     pub sh_type: Elf64Word,
-    /// Miscellaneous section attributes 
+    /// Miscellaneous section attributes
     pub sh_flags: Elf64Xword,
     ///  Section virtual addr at execution
     pub sh_addr: Elf64Addr,
@@ -256,7 +239,7 @@ pub struct Shdr64 {
     pub sh_size: Elf64Xword,
     /// Index of another section
     pub sh_link: Elf64Word,
-    /// Additional section information 
+    /// Additional section information
     pub sh_info: Elf64Word,
     /// Section alignment
     pub sh_addralign: Elf64Xword,
