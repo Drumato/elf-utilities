@@ -63,7 +63,7 @@ pub struct Symbol32 {
     /// option member for utilities.
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
-    pub symbol_name: Option<String>,
+    pub symbol_name: String,
 }
 
 #[allow(dead_code)]

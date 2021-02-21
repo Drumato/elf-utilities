@@ -1,9 +1,8 @@
 use crate::*;
-use header::ELFHeader;
-use section::{Contents, Section};
 use std::fs::File;
 use std::io::Read;
 
+use serde::Deserialize;
 use thiserror::Error as TError;
 
 #[derive(TError, Debug)]
@@ -20,87 +19,109 @@ pub enum ReadELFError {
     CantParseSymbol { k: Box<dyn std::error::Error> },
 }
 
-pub fn read_elf64(file_path: &str) -> Result<file::ELF64, Box<dyn std::error::Error>> {
-    read_elf(file_path)
+/// parse 64bit ELF
+pub fn parse_elf64(file_path: &str) -> Result<file::ELF64, Box<dyn std::error::Error>> {
+    Ok(parse_elf(file_path)?.as_64bit())
 }
-pub fn read_elf32(file_path: &str) -> Result<file::ELF32, Box<dyn std::error::Error>> {
-    read_elf(file_path)
+/// parse 32bit ELF
+pub fn parse_elf32(file_path: &str) -> Result<file::ELF32, Box<dyn std::error::Error>> {
+    Ok(parse_elf(file_path)?.as_32bit())
 }
 
-/// read ELF and construct `file::ELF`
-fn read_elf<F: file::ELF>(file_path: &str) -> Result<F, Box<dyn std::error::Error>> {
+/// parse ELF and construct `file::ELF`
+pub fn parse_elf(file_path: &str) -> Result<file::ELF, Box<dyn std::error::Error>> {
     let mut f = File::open(file_path)?;
     let mut buf = Vec::new();
     let _ = f.read_to_end(&mut buf);
 
     let _ = check_elf_magic(file_path, &buf[..4])?;
 
-    let elf_header: F::Header = parse_elf_header(&buf);
-    let phdr_table_exists = elf_header.program_header_table_exists();
+    // 32bit/64bitでパース処理を共通化するため，classを取っておく
+    let elf_class = header::Class::from(buf[header::Class::INDEX]);
 
-    let mut elf_file = F::new(elf_header);
+    let elf_header = parse_elf_header(elf_class, &buf)?;
+    let phdr_table_exists = elf_header.pht_exists();
 
-    let sections = read_elf_sections(
-        elf_file.header().section_number(),
-        elf_file.header().section_offset(),
-        &buf,
-    )?;
-    elf_file.update_sections(sections);
+    let mut sections = read_sht(elf_class, elf_header.shnum(), elf_header.sht_start(), &buf)?;
+    let mut segments = Vec::new();
 
     if phdr_table_exists {
-        let segments = read_elf_segments(
-            elf_file.header().segment_number(),
-            elf_file.header().segment_offset(),
-            &buf,
-        )?;
-        elf_file.update_segments(segments);
+        segments = read_pht(elf_class, elf_header.phnum(), elf_header.pht_start(), &buf)?;
     }
 
-    set_sections_name_shstrtab(
-        elf_file.header().section_name_table_idx(),
-        elf_file.header().section_number(),
-        elf_file.sections_as_mut(),
-    );
+    // セクション名の設定
+    // .shstrtabセクションは大抵SHTの末尾にあるため，read_sht() 後に行う必要がある
+    naming_sections_from_shstrtab(elf_header.shstrndx(), &mut sections);
 
-    for idx in 0..elf_file.header().section_number() {
-        if elf_file.sections_as_mut()[idx].section_type() != section::Type::SymTab
-            && elf_file.sections_as_mut()[idx].section_type() != section::Type::DynSym
-        {
-            continue;
-        }
+    // シンボル名の設定
+    // これもセクション名の設定と同様，SHTパース後に実行する必要があるため切り離している
+    naming_symbols(&mut sections);
 
-        let related_string_table_index = elf_file.sections_as_mut()[idx].section_link();
-        let name_bytes = elf_file.sections_as_mut()[related_string_table_index].clone_raw_binary();
-
-        let symbol_number = elf_file.sections_as_mut()[idx].symbol_number();
-        for sym_idx in 0..symbol_number {
-            elf_file.sections_as_mut()[idx].update_symbol_name(sym_idx, &name_bytes);
-        }
+    match elf_class {
+        header::Class::Bit64 => Ok(file::ELF::ELF64(file::ELF64 {
+            ehdr: elf_header.as_64bit(),
+            sections: sections.iter().map(|sct| sct.as_64bit()).collect(),
+            segments: segments.iter().map(|sgt| sgt.as_64bit()).collect(),
+        })),
+        header::Class::Bit32 => Ok(file::ELF::ELF32(file::ELF32 {
+            ehdr: elf_header.as_32bit(),
+            sections: sections.iter().map(|sct| sct.as_32bit()).collect(),
+            segments: segments.iter().map(|sgt| sgt.as_32bit()).collect(),
+        })),
+        _ => todo!(),
     }
-
-    Ok(elf_file)
 }
 
-fn read_elf_sections<S: section::Section>(
+/// セクションヘッダテーブルのパース
+fn read_sht(
+    class: header::Class,
     section_number: usize,
     sht_offset: usize,
     buf: &[u8],
-) -> Result<Vec<S>, Box<dyn std::error::Error>> {
-    let mut sections: Vec<S> = Vec::new();
+) -> Result<Vec<section::Section>, Box<dyn std::error::Error>> {
+    let mut sections = Vec::with_capacity(50);
+    let shdr_size = match class {
+        header::Class::Bit32 => section::Shdr32::SIZE,
+        header::Class::Bit64 => section::Shdr64::SIZE,
+        _ => todo!(),
+    };
 
     for sct_idx in 0..section_number {
-        let header_start = sht_offset + S::header_size() * sct_idx;
-        let shdr = S::header_deserialize(buf, header_start)?;
+        let header_start = sht_offset + shdr_size * sct_idx;
+        let shdr = match class {
+            header::Class::Bit32 => {
+                section::Shdr::Shdr32(bincode::deserialize(&buf[header_start..])?)
+            }
+            header::Class::Bit64 => {
+                section::Shdr::Shdr64(bincode::deserialize(&buf[header_start..])?)
+            }
+            _ => todo!(),
+        };
 
-        let mut sct = S::new(shdr);
-        let section_type = sct.section_type();
+        let mut sct = section::Section::new(shdr);
+        let section_type = sct.ty();
 
         if section_type != section::Type::NoBits {
             let section_offset = sct.offset();
             let section_raw_contents =
-                buf[section_offset..section_offset + sct.section_size() as usize].to_vec();
-            // とりあえずRawで保持しておいて，後で変換する
-            sct.update_contents_from_raw_bytes(section_raw_contents);
+                buf[section_offset..section_offset + sct.size() as usize].to_vec();
+
+            sct.contents = match section_type {
+                section::Type::SymTab => parse_symbol_table(class, &sct, &section_raw_contents),
+                section::Type::Rela => parse_rela_symbol_table(class, &sct, &section_raw_contents),
+                section::Type::Dynamic => {
+                    parse_dynamic_information(class, &sct, &section_raw_contents)
+                }
+                _ => match class {
+                    header::Class::Bit32 => section::Contents::Contents32(
+                        section::Contents32::Raw(section_raw_contents),
+                    ),
+                    header::Class::Bit64 => section::Contents::Contents64(
+                        section::Contents64::Raw(section_raw_contents),
+                    ),
+                    _ => todo!(),
+                },
+            }
         }
 
         sections.push(sct);
@@ -108,46 +129,165 @@ fn read_elf_sections<S: section::Section>(
 
     Ok(sections)
 }
+fn parse_rela_symbol_table(
+    class: header::Class,
+    sct: &section::Section,
+    raw_symtab: &Vec<u8>,
+) -> section::Contents {
+    let entry_size = sct.entry_size();
+    let entry_number = sct.size() / entry_size;
+    match class {
+        header::Class::Bit32 => section::Contents::Contents32(section::Contents32::RelaSymbols(
+            parse_table(entry_size, entry_number, raw_symtab),
+        )),
+        header::Class::Bit64 => section::Contents::Contents64(section::Contents64::RelaSymbols(
+            parse_table(entry_size, entry_number, raw_symtab),
+        )),
+        _ => todo!(),
+    }
+}
 
-fn read_elf_segments<T: segment::Segment>(
-    segment_number: usize,
-    pht_offset: usize,
+fn parse_dynamic_information(
+    class: header::Class,
+    sct: &section::Section,
+    raw_symtab: &Vec<u8>,
+) -> section::Contents {
+    let entry_size = sct.entry_size();
+    let entry_number = sct.size() / entry_size;
+    match class {
+        header::Class::Bit32 => section::Contents::Contents32(section::Contents32::Dynamics(
+            parse_table(entry_size, entry_number, raw_symtab),
+        )),
+        header::Class::Bit64 => section::Contents::Contents64(section::Contents64::Dynamics(
+            parse_table(entry_size, entry_number, raw_symtab),
+        )),
+        _ => todo!(),
+    }
+}
+
+fn parse_symbol_table(
+    class: header::Class,
+    sct: &section::Section,
+    raw_symtab: &Vec<u8>,
+) -> section::Contents {
+    let entry_size = sct.entry_size();
+    let entry_number = sct.size() / entry_size;
+    match class {
+        header::Class::Bit32 => section::Contents::Contents32(section::Contents32::Symbols(
+            parse_table(entry_size, entry_number, raw_symtab),
+        )),
+        header::Class::Bit64 => section::Contents::Contents64(section::Contents64::Symbols(
+            parse_table(entry_size, entry_number, raw_symtab),
+        )),
+        _ => todo!(),
+    }
+}
+
+fn parse_table<'a, T: Deserialize<'a>>(
+    entry_size: usize,
+    entry_number: usize,
+    buf: &'a [u8],
+) -> Vec<T> {
+    let mut table = Vec::new();
+    for idx in 0..entry_number {
+        let start = idx * entry_size;
+        let end = (idx + 1) * entry_size;
+        let entry = bincode::deserialize(&buf[start..end]).unwrap();
+        table.push(entry);
+    }
+    table
+}
+
+/// プログラムヘッダテーブルのパース
+fn read_pht(
+    class: header::Class,
+    phnum: usize,
+    pht_start: usize,
     buf: &[u8],
-) -> Result<Vec<T>, Box<dyn std::error::Error>> {
-    let mut segments: Vec<T> = Vec::new();
+) -> Result<Vec<segment::Segment>, Box<dyn std::error::Error>> {
+    let mut segments = Vec::with_capacity(10);
+    let phdr_size = match class {
+        header::Class::Bit32 => segment::Phdr32::SIZE,
+        header::Class::Bit64 => segment::Phdr64::SIZE,
+        _ => todo!(),
+    };
 
-    for seg_idx in 0..segment_number {
-        let header_start = pht_offset as usize + T::header_size() * seg_idx;
-        let phdr = T::header_deserialize(buf, header_start)?;
+    for seg_idx in 0..phnum {
+        let header_start = pht_start as usize + phdr_size * seg_idx;
+        let phdr = match class {
+            header::Class::Bit32 => {
+                segment::Phdr::Phdr32(segment::Phdr32::deserialize(buf, header_start)?)
+            }
+            header::Class::Bit64 => {
+                segment::Phdr::Phdr64(segment::Phdr64::deserialize(buf, header_start)?)
+            }
+            _ => todo!(),
+        };
 
-        let seg = T::new(phdr);
+        let seg = segment::Segment { phdr };
         segments.push(seg);
     }
 
     Ok(segments)
 }
 
-fn set_sections_name_shstrtab<T: section::Section>(
-    shstrndx: usize,
-    section_number: usize,
-    sections: &mut Vec<T>,
-) {
-    for idx in 0..section_number {
-        if idx == 0 || idx >= section_number {
-            continue;
-        }
-
-        let name_idx = sections[idx].name_idx();
-
-        let name_bytes = sections[shstrndx].clone_contents();
-        let name_bytes: Vec<u8> = name_bytes.clone_raw_binary()[name_idx as usize..]
+/// セクション名を.shstrtabから探して，Section構造体に書き込む
+/// このようにしているのは，SHTのパースがすべて終わってからでないとshstrtabを使用できない為
+fn naming_sections_from_shstrtab(shstrndx: usize, sections: &mut Vec<section::Section>) {
+    let shstrtab = sections[shstrndx].contents.as_raw();
+    for sct in sections.iter_mut() {
+        let name_idx = sct.name_idx();
+        let raw_name: Vec<u8> = shstrtab[name_idx..]
             .to_vec()
             .iter()
             .take_while(|byte| **byte != 0x00)
             .copied()
             .collect();
 
-        sections[idx].update_name(std::str::from_utf8(&name_bytes).unwrap().to_string());
+        sct.name = std::str::from_utf8(&raw_name).unwrap().to_string();
+    }
+}
+
+/// シンボル名をsh_linkが指す文字列テーブルから探して割り当てる
+/// このようにしているのは，SHTのパースがすべて終わってからでないとshstrtabを使用できない為
+fn naming_symbols(sections: &mut Vec<section::Section>) {
+    let section_number = sections.len();
+    for sct_idx in 0..section_number {
+        let sct = &sections[sct_idx];
+        if sct.ty() != section::Type::SymTab && sct.ty() != section::Type::DynSym {
+            continue;
+        }
+
+        let strtab = sections[sct.link()].contents.as_raw();
+
+        match &mut sections[sct_idx].contents {
+            section::Contents::Contents32(c) => {
+                if let section::Contents32::Symbols(ref mut symbols) = c {
+                    for sym in symbols.iter_mut() {
+                        let raw_name: Vec<u8> = strtab[sym.st_name as usize..]
+                            .to_vec()
+                            .iter()
+                            .take_while(|byte| **byte != 0x00)
+                            .copied()
+                            .collect();
+                        sym.symbol_name = std::str::from_utf8(&raw_name).unwrap().to_string();
+                    }
+                }
+            }
+            section::Contents::Contents64(c) => {
+                if let section::Contents64::Symbols(ref mut symbols) = c {
+                    for sym in symbols.iter_mut() {
+                        let raw_name: Vec<u8> = strtab[sym.st_name as usize..]
+                            .to_vec()
+                            .iter()
+                            .take_while(|byte| **byte != 0x00)
+                            .copied()
+                            .collect();
+                        sym.symbol_name = std::str::from_utf8(&raw_name).unwrap().to_string();
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -163,8 +303,15 @@ fn check_elf_magic(file_path: &str, buf: &[u8]) -> Result<(), Box<dyn std::error
     Ok(())
 }
 
-fn parse_elf_header<T: header::ELFHeader>(buf: &[u8]) -> T {
-    T::deserialize(buf)
+fn parse_elf_header(
+    class: header::Class,
+    buf: &[u8],
+) -> Result<header::Ehdr, Box<dyn std::error::Error>> {
+    match class {
+        header::Class::Bit32 => Ok(header::Ehdr::Ehdr32(bincode::deserialize(buf)?)),
+        header::Class::Bit64 => Ok(header::Ehdr::Ehdr64(bincode::deserialize(buf)?)),
+        _ => todo!(),
+    }
 }
 
 #[cfg(test)]
@@ -189,11 +336,14 @@ mod parse_tests {
             0x57, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x38, 0x00,
             0x0c, 0x00, 0x40, 0x00, 0x2c, 0x00, 0x2b, 0x00,
         ];
-        let hdr_result: header::Ehdr64 = parse_elf_header(&header_bytes);
+        let hdr_result = parse_elf_header(header::Class::Bit64, &header_bytes).unwrap();
+        assert!(matches!(hdr_result, header::Ehdr::Ehdr64(_)));
 
-        assert_eq!(hdr_result.get_type(), header::Type::Dyn);
-        assert_eq!(hdr_result.e_entry, 0xe160);
-        assert_eq!(hdr_result.e_shnum, 44);
+        if let header::Ehdr::Ehdr64(ehdr) = hdr_result {
+            assert_eq!(ehdr.get_type(), header::Type::Dyn);
+            assert_eq!(ehdr.e_entry, 0xe160);
+            assert_eq!(ehdr.e_shnum, 44);
+        }
     }
 
     #[test]
@@ -205,102 +355,106 @@ mod parse_tests {
             0x20, 0x00, 0x0c, 0x00, 0x28, 0x00, 0x1f, 0x00, 0x1e, 0x00, 0x06, 0x00, 0x34, 0x00,
             0x00, 0x00, 0x40, 0x00, 0x2c, 0x00, 0x2b, 0x00,
         ];
-        let hdr_result: header::Ehdr32 = parse_elf_header(&header_bytes);
+        let hdr_result = parse_elf_header(header::Class::Bit32, &header_bytes).unwrap();
+        assert!(matches!(hdr_result, header::Ehdr::Ehdr32(_)));
 
-        assert_eq!(hdr_result.get_type(), header::Type::Dyn);
-        assert_eq!(hdr_result.e_entry, 0x1090);
-        assert_eq!(hdr_result.e_shnum, 31);
+        if let header::Ehdr::Ehdr32(ehdr) = hdr_result {
+            assert_eq!(ehdr.get_type(), header::Type::Dyn);
+            assert_eq!(ehdr.e_entry, 0x1090);
+            assert_eq!(ehdr.e_shnum, 31);
+        }
     }
 
     #[test]
     fn read_elf64_test() {
-        let f_result = read_elf::<file::ELF64>("examples/sample");
+        let f_result = parse_elf("src/parser/testdata/sample");
         assert!(f_result.is_ok());
         let f = f_result.unwrap();
+        assert!(matches!(f, file::ELF::ELF64(_)));
+        if let file::ELF::ELF64(f) = f {
+            assert_eq!(f.ehdr.e_entry, 0x1040);
+            assert_eq!(f.ehdr.e_shnum, 29);
+            assert_eq!(f.ehdr.e_shstrndx, 28);
 
-        assert_eq!(f.ehdr.e_entry, 0x1040);
-        assert_eq!(f.ehdr.e_shnum, 29);
-        assert_eq!(f.ehdr.e_shstrndx, 28);
+            assert_eq!(f.sections.len(), 29);
+            assert_eq!(f.segments.len(), 13);
 
-        assert_eq!(f.sections.len(), 29);
-        assert_eq!(f.segments.len(), 13);
+            assert_eq!(".interp", &f.sections[1].name);
+            assert_eq!(f.sections[1].header.get_type(), section::Type::ProgBits);
+            assert_eq!(f.sections[1].header.sh_addr, 0x318);
+            assert_eq!(f.sections[1].header.sh_offset, 0x318);
+            assert_eq!(f.sections[1].header.sh_addralign, 0x1);
+            assert_eq!(f.sections[1].header.sh_flags, section::SHF_ALLOC);
+            assert_eq!(f.sections[1].header.sh_size, 0x1c);
+            assert!(
+                matches!(&f.sections[1].contents, Contents64::Raw(x) if x.len() == f.sections[1].header.sh_size as usize )
+            );
 
-        assert_eq!(".interp", &f.sections[1].name);
-        assert_eq!(f.sections[1].header.get_type(), section::Type::ProgBits);
-        assert_eq!(f.sections[1].header.sh_addr, 0x318);
-        assert_eq!(f.sections[1].header.sh_offset, 0x318);
-        assert_eq!(f.sections[1].header.sh_addralign, 0x1);
-        assert_eq!(f.sections[1].header.sh_flags, section::SHF_ALLOC);
-        assert_eq!(f.sections[1].header.sh_size, 0x1c);
-        assert!(
-            matches!(&f.sections[1].contents, Contents64::Raw(x) if x.len() == f.sections[1].header.sh_size as usize )
-        );
+            assert_eq!(f.sections[2].header.get_type(), section::Type::Note);
+            assert_eq!(f.sections[2].header.sh_addr, 0x338);
+            assert!(
+                matches!(&f.sections[2].contents, Contents64::Raw(x) if x.len() == f.sections[2].header.sh_size as usize )
+            );
 
-        assert_eq!(f.sections[2].header.get_type(), section::Type::Note);
-        assert_eq!(f.sections[2].header.sh_addr, 0x338);
-        assert!(
-            matches!(&f.sections[2].contents, Contents64::Raw(x) if x.len() == f.sections[2].header.sh_size as usize )
-        );
+            assert_eq!(f.sections[10].header.get_type(), section::Type::Rela);
+            assert!(matches!(
+                f.sections[10].contents,
+                Contents64::RelaSymbols(_)
+            ));
+            assert_eq!(f.sections[26].header.get_type(), section::Type::SymTab);
+            assert!(matches!(
+                &f.sections[26].contents,
+                Contents64::Symbols(x) if x.len() == 62
+            ));
+            assert!(matches!(
+                &f.sections[26].contents,
+                Contents64::Symbols(x) if x[26].symbol_name == "crtstuff.c"
+            ));
+            assert!(matches!(
+                &f.sections[26].contents,
+                Contents64::Symbols(x) if x[45].symbol_name == "_ITM_deregisterTMCloneTable"
+            ));
 
-        assert_eq!(f.sections[10].header.get_type(), section::Type::Rela);
-        assert!(matches!(
-            f.sections[10].contents,
-            Contents64::RelaSymbols(_)
-        ));
-        assert_eq!(f.sections[26].header.get_type(), section::Type::SymTab);
-        assert!(matches!(
-            &f.sections[26].contents,
-            Contents64::Symbols(x) if x.len() == 62
-        ));
-        assert!(matches!(
-            &f.sections[26].contents,
-            Contents64::Symbols(x) if x[26].symbol_name.is_some()
-        ));
-        assert!(matches!(
-            &f.sections[26].contents,
-            Contents64::Symbols(x) if x[26].symbol_name.as_ref().unwrap() == "crtstuff.c"
-        ));
-        assert!(matches!(
-            &f.sections[26].contents,
-            Contents64::Symbols(x) if x[45].symbol_name.as_ref().unwrap() == "_ITM_deregisterTMCloneTable"
-        ));
+            assert_eq!(f.sections[21].header.get_type(), section::Type::Dynamic);
+            assert!(matches!(
+                &f.sections[21].contents,
+                Contents64::Dynamics(x) if x[1].get_type() == dynamic::EntryType::Init
+            ));
+            assert!(matches!(
+                &f.sections[21].contents,
+                Contents64::Dynamics(x) if x[2].get_type() == dynamic::EntryType::Fini
+            ));
 
-        assert_eq!(f.sections[21].header.get_type(), section::Type::Dynamic);
-        assert!(matches!(
-            &f.sections[21].contents,
-            Contents64::Dynamics(x) if x[1].get_type() == dynamic::EntryType::Init
-        ));
-        assert!(matches!(
-            &f.sections[21].contents,
-            Contents64::Dynamics(x) if x[2].get_type() == dynamic::EntryType::Fini
-        ));
+            assert_eq!(f.segments[0].header.get_type(), segment::Type::Phdr);
+            assert_eq!(f.segments[0].header.p_flags, segment::PF_R);
+            assert_eq!(f.segments[0].header.p_align, 8);
 
-        assert_eq!(f.segments[0].header.get_type(), segment::Type::Phdr);
-        assert_eq!(f.segments[0].header.p_flags, segment::PF_R);
-        assert_eq!(f.segments[0].header.p_align, 8);
-
-        assert_eq!(f.segments[1].header.get_type(), segment::Type::Interp);
-        assert_eq!(f.segments[1].header.p_flags, segment::PF_R);
-        assert_eq!(f.segments[1].header.p_align, 1);
+            assert_eq!(f.segments[1].header.get_type(), segment::Type::Interp);
+            assert_eq!(f.segments[1].header.p_flags, segment::PF_R);
+            assert_eq!(f.segments[1].header.p_align, 1);
+        }
     }
     #[test]
     fn read_elf32_test() {
-        let f_result = read_elf::<file::ELF32>("examples/32bit");
+        let f_result = parse_elf("src/parser/testdata/32bit");
         assert!(f_result.is_ok());
 
-        let f: file::ELF32 = f_result.unwrap();
+        let f = f_result.unwrap();
+        assert!(matches!(f, file::ELF::ELF32(_)));
 
-        assert_eq!(header::Type::Dyn, f.ehdr.get_type());
-        assert_eq!(0x1090, f.ehdr.e_entry);
-        assert_eq!(32, f.ehdr.e_phentsize);
-        assert_eq!(40, f.ehdr.e_shentsize);
-        assert_eq!(30, f.ehdr.e_shstrndx);
+        if let file::ELF::ELF32(f) = f {
+            assert_eq!(header::Type::Dyn, f.ehdr.get_type());
+            assert_eq!(0x1090, f.ehdr.e_entry);
+            assert_eq!(32, f.ehdr.e_phentsize);
+            assert_eq!(40, f.ehdr.e_shentsize);
+            assert_eq!(30, f.ehdr.e_shstrndx);
 
-        assert_eq!(".interp", f.sections[1].name);
-        assert_eq!(0x1b4, f.sections[1].header.sh_addr);
-        assert_eq!(0x13, f.sections[1].header.sh_size);
+            assert_eq!(".interp", f.sections[1].name);
+            assert_eq!(0x1b4, f.sections[1].header.sh_addr);
+            assert_eq!(0x13, f.sections[1].header.sh_size);
 
-        assert_eq!(".note.ABI-tag", f.sections[4].name);
-        assert_eq!(0x208, f.sections[4].header.sh_addr);
+            assert_eq!(".note.ABI-tag", f.sections[4].name);
+            assert_eq!(0x208, f.sections[4].header.sh_addr);
+        }
     }
 }

@@ -1,4 +1,4 @@
-use crate::header::{class, data, elf_type, machine, osabi, version, ELFHeader};
+use crate::header::{class, data, elf_type, machine, osabi, version};
 use crate::*;
 use serde::{Deserialize, Serialize};
 
@@ -21,30 +21,6 @@ pub struct Ehdr64 {
     pub e_shstrndx: Elf64Half,
 }
 
-impl ELFHeader for Ehdr64 {
-    fn deserialize(buf: &[u8]) -> Ehdr64 {
-        bincode::deserialize(&buf[..Ehdr64::size() as usize]).unwrap()
-    }
-    fn section_number(&self) -> usize {
-        self.e_shnum as usize
-    }
-    fn section_offset(&self) -> usize {
-        self.e_shoff as usize
-    }
-    fn program_header_table_exists(&self) -> bool {
-        self.e_phnum != 0
-    }
-    fn segment_number(&self) -> usize {
-        self.e_phnum as usize
-    }
-    fn segment_offset(&self) -> usize {
-        self.e_phoff as usize
-    }
-    fn section_name_table_idx(&self) -> usize {
-        self.e_shstrndx as usize
-    }
-}
-
 impl Default for Ehdr64 {
     fn default() -> Self {
         Self {
@@ -56,13 +32,13 @@ impl Default for Ehdr64 {
             e_machine: 0,
             e_version: 0,
             e_entry: 0,
-            e_phoff: 0,
-            e_shoff: 0,
+            e_phoff: Self::SIZE as Elf64Off,
+            e_shoff: Self::SIZE as Elf64Off,
             e_flags: 0,
-            e_ehsize: 0,
-            e_phentsize: 0,
+            e_ehsize: Self::SIZE as Elf64Half,
+            e_phentsize: segment::Phdr64::SIZE as Elf64Half,
             e_phnum: 0,
-            e_shentsize: 0,
+            e_shentsize: section::Shdr64::SIZE as Elf64Half,
             e_shnum: 0,
             e_shstrndx: 0,
         }
@@ -70,9 +46,8 @@ impl Default for Ehdr64 {
 }
 
 impl Ehdr64 {
-    pub fn size() -> Elf64Half {
-        0x40
-    }
+    /// header size
+    pub const SIZE: Elf64Half = 0x40;
 
     pub fn get_class(&self) -> class::Class {
         class::Class::from(self.e_ident[class::Class::INDEX])
@@ -118,27 +93,6 @@ impl Ehdr64 {
     }
 
     /// Create Vec<u8> from this.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use elf_utilities::header::Ehdr64;
-    /// let null_ehdr : Ehdr64 = Default::default();
-    ///
-    /// assert_eq!(
-    ///     vec![
-    ///         0x7f, 0x45, 0x4c, 0x46, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///     ],
-    ///     null_ehdr.to_le_bytes()
-    /// );
-    /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()
     }

@@ -6,6 +6,7 @@ mod elf64;
 mod segment_flag;
 mod segment_type;
 
+#[allow(unused_imports)]
 pub use base::*;
 pub use elf32::*;
 pub use elf64::*;

@@ -1,4 +1,4 @@
-use crate::{file, header, section, segment};
+use crate::{header, section, segment};
 
 #[repr(C)]
 #[derive(Default, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
@@ -8,31 +8,71 @@ pub struct ELF32 {
     pub segments: Vec<segment::Segment32>,
 }
 
-impl file::ELF for ELF32 {
-    type Header = header::Ehdr32;
-    type Section = section::Section32;
-    type Segment = segment::Segment32;
+impl ELF32 {
+    /// add a section with creating new entry of section table and etc.
+    pub fn add_section(&mut self, mut sct: section::Section32) {
+        // ehdr.e_shstrndxの変更のために計算
+        let is_section_name_table = sct.name == ".shstrtab";
 
-    fn new(elf_header: header::Ehdr32) -> Self {
-        Self {
-            ehdr: elf_header,
-            sections: Vec::new(),
-            segments: Vec::new(),
+        // 新しいセクションのsh_name等を計算する為に
+        // 現在の末尾のセクションを取得する
+        let last_sct_idx = self.sections.len() - 1;
+        fill_elf_info(&mut sct, &self.sections[last_sct_idx]);
+
+        // セクションの追加 => SHTの開始オフセットが変更される
+        self.ehdr.e_shoff += sct.header.sh_size;
+        self.ehdr.e_shnum += 1;
+
+        self.sections.push(sct);
+
+        if is_section_name_table {
+            self.ehdr.e_shstrndx = self.sections.len() as u16 - 1;
         }
     }
 
-    fn header(&self) -> Self::Header {
-        self.ehdr
+    pub fn add_segment(&mut self, sgt: segment::Segment32) {
+        // PHTに追加される => SHTのオフセットと各セクションのオフセットが変更される
+        self.ehdr.e_shoff += segment::Phdr32::SIZE as u32;
+        for sct in self.sections.iter_mut() {
+            sct.header.sh_offset += segment::Phdr32::SIZE as u32;
+        }
+        self.ehdr.e_phnum += 1;
+
+        self.segments.push(sgt);
     }
-    fn sections_as_mut(&mut self) -> &mut Vec<section::Section32> {
-        &mut self.sections
-    }
-    fn update_sections(&mut self, sections: Vec<section::Section32>) {
-        self.sections = sections;
-    }
-    fn update_segments(&mut self, segments: Vec<segment::Segment32>) {
-        self.segments = segments;
+    pub fn to_le_bytes(&self) -> Vec<u8> {
+        let mut file_binary: Vec<u8> = Vec::new();
+
+        let mut header_binary = self.ehdr.to_le_bytes();
+        file_binary.append(&mut header_binary);
+
+        for seg in self.segments.iter() {
+            let mut phdr_binary = seg.header.to_le_bytes();
+            file_binary.append(&mut phdr_binary);
+        }
+
+        for sct in self.sections.iter() {
+            // セクションタイプによって処理を変える
+            let mut section_binary = sct.to_le_bytes();
+            file_binary.append(&mut section_binary);
+        }
+
+        for sct in self.sections.iter() {
+            let mut shdr_binary = sct.header.to_le_bytes();
+            file_binary.append(&mut shdr_binary);
+        }
+        file_binary
     }
 }
 
-impl ELF32 {}
+/// sh_nameやsh_offset等の調整
+fn fill_elf_info(new_sct: &mut section::Section32, prev_sct: &section::Section32) {
+    let prev_name_idx = prev_sct.header.sh_name;
+    let prev_name_len = prev_sct.name.as_bytes().len() as u32;
+    let prev_offset = prev_sct.header.sh_offset;
+    let prev_size = prev_sct.header.sh_size;
+
+    // <prev_section_name> の後に0x00が入るので，+1
+    new_sct.header.sh_name = prev_name_idx + prev_name_len + 1;
+    new_sct.header.sh_offset = prev_offset + prev_size;
+}

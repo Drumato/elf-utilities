@@ -12,28 +12,6 @@ pub struct Segment64 {
     pub header: Phdr64,
 }
 
-impl Segment for Segment64 {
-    type Header = Phdr64;
-
-    fn new(header: Phdr64) -> Self {
-        Self { header }
-    }
-
-    fn header_deserialize(
-        buf: &[u8],
-        header_start: usize,
-    ) -> Result<Phdr64, Box<dyn std::error::Error>> {
-        match bincode::deserialize(&buf[header_start..]) {
-            Ok(header) => Ok(header),
-            Err(e) => Err(e),
-        }
-    }
-
-    fn header_size() -> usize {
-        Phdr64::size() as usize
-    }
-}
-
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Phdr64 {
@@ -78,9 +56,7 @@ impl Default for Phdr64 {
 }
 
 impl Phdr64 {
-    pub fn size() -> Elf64Half {
-        0x38
-    }
+    pub const SIZE: usize = 0x38;
 
     // getter
     pub fn get_type(&self) -> segment_type::Type {
@@ -110,7 +86,7 @@ impl Phdr64 {
     /// use elf_utilities::segment::Phdr64;
     /// let null_phdr : Phdr64 = Default::default();
     ///
-    /// assert_eq!([0].repeat(Phdr64::size() as usize), null_phdr.to_le_bytes());
+    /// assert_eq!([0].repeat(Phdr64::SIZE), null_phdr.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()

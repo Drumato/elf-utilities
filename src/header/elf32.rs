@@ -1,4 +1,4 @@
-use crate::header::{class, data, elf_type, machine, osabi, version, ELFHeader};
+use crate::header::{class, data, elf_type, machine, osabi, version};
 use crate::*;
 use serde::{Deserialize, Serialize};
 
@@ -19,30 +19,6 @@ pub struct Ehdr32 {
     pub e_shentsize: Elf32Half,
     pub e_shnum: Elf32Half,
     pub e_shstrndx: Elf32Half,
-}
-
-impl ELFHeader for Ehdr32 {
-    fn deserialize(buf: &[u8]) -> Self {
-        bincode::deserialize(&buf[..Ehdr32::size() as usize]).unwrap()
-    }
-    fn program_header_table_exists(&self) -> bool {
-        self.e_phnum != 0
-    }
-    fn section_number(&self) -> usize {
-        self.e_shnum as usize
-    }
-    fn section_offset(&self) -> usize {
-        self.e_shoff as usize
-    }
-    fn segment_number(&self) -> usize {
-        self.e_phnum as usize
-    }
-    fn segment_offset(&self) -> usize {
-        self.e_phoff as usize
-    }
-    fn section_name_table_idx(&self) -> usize {
-        self.e_shstrndx as usize
-    }
 }
 
 impl Default for Ehdr32 {
@@ -118,27 +94,6 @@ impl Ehdr32 {
     }
 
     /// Create Vec<u8> from this.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use elf_utilities::header::Ehdr64;
-    /// let null_ehdr : Ehdr64 = Default::default();
-    ///
-    /// assert_eq!(
-    ///     vec![
-    ///         0x7f, 0x45, 0x4c, 0x46, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///     ],
-    ///     null_ehdr.to_le_bytes()
-    /// );
-    /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()
     }
