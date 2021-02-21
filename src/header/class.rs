@@ -1,3 +1,4 @@
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Class {
     // invalid class
     None,

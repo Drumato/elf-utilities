@@ -17,132 +17,12 @@ pub enum Contents64 {
     Dynamics(Vec<dynamic::Dyn64>),
 }
 
-impl section::Contents for Contents64 {
-    type Symbol = symbol::Symbol64;
-    type Dyn = dynamic::Dyn64;
-    type Rela = relocation::Rela64;
-
-    fn clone_raw_binary(&self) -> Vec<u8> {
-        match self {
-            Contents64::Raw(bytes) => bytes.clone(),
-            _ => panic!("cannot call 'clone_raw_binary' without Contents64::Raw"),
-        }
-    }
-}
-
 #[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct Section64 {
     pub name: String,
     pub header: Shdr64,
 
     pub contents: Contents64,
-}
-
-impl section::Section for Section64 {
-    type Header = section::Shdr64;
-    type Contents = Contents64;
-
-    fn new(header: section::Shdr64) -> Self {
-        Self {
-            header,
-            contents: Contents64::Raw(Default::default()),
-            name: String::new(),
-        }
-    }
-    fn clone_contents(&self) -> Contents64 {
-        self.contents.clone()
-    }
-    fn update_contents_from_raw_bytes(&mut self, bytes: Vec<u8>) {
-        match self.header.get_type() {
-            section::Type::Dynamic => {
-                self.contents = Contents64::Dynamics(self.parse_bytes_as_dynamics(bytes));
-            }
-            section::Type::SymTab | section::Type::DynSym => {
-                self.contents = Contents64::Symbols(self.parse_bytes_as_symbols(bytes));
-            }
-            section::Type::Rela => {
-                self.contents = Contents64::RelaSymbols(self.parse_bytes_as_rela_symbols(bytes));
-            }
-            _ => {
-                self.contents = Contents64::Raw(bytes);
-            }
-        }
-    }
-    fn name_idx(&self) -> usize {
-        self.header.sh_name as usize
-    }
-    fn update_name(&mut self, name: String) {
-        self.name = name;
-    }
-    fn clone_raw_binary(&self) -> Vec<u8> {
-        match &self.contents {
-            Contents64::Raw(bytes) => bytes.clone(),
-            _ => unreachable!(),
-        }
-    }
-    fn update_symbol_name(&mut self, sym_idx: usize, name_bytes: &[u8]) {
-        match self.contents {
-            Contents64::Symbols(ref mut syms) => {
-                let name_idx = syms[sym_idx].st_name as usize;
-
-                let name_bytes: Vec<u8> = name_bytes[name_idx as usize..]
-                    .to_vec()
-                    .iter()
-                    .take_while(|byte| **byte != 0x00)
-                    .copied()
-                    .collect();
-
-                syms[sym_idx].symbol_name =
-                    Some(std::str::from_utf8(&name_bytes).unwrap().to_string());
-            }
-            _ => unreachable!(),
-        }
-    }
-
-    fn header_deserialize(
-        buf: &[u8],
-        header_start: usize,
-    ) -> Result<section::Shdr64, Box<dyn std::error::Error>> {
-        match bincode::deserialize(&buf[header_start..]) {
-            Ok(header) => Ok(header),
-            Err(e) => Err(e),
-        }
-    }
-
-    fn symbol_number(&self) -> usize {
-        match &self.contents {
-            Contents64::Symbols(syms) => syms.len(),
-            _ => unreachable!(),
-        }
-    }
-
-    fn section_link(&self) -> usize {
-        self.header.sh_link as usize
-    }
-
-    fn header_size() -> usize {
-        Shdr64::size() as usize
-    }
-
-    fn size_zero(&self) -> bool {
-        self.header.sh_size == 0
-    }
-
-    fn offset(&self) -> usize {
-        self.header.sh_offset as usize
-    }
-
-    fn section_type(&self) -> section::Type {
-        self.header.get_type()
-    }
-
-    fn entry_size(&self) -> usize {
-        self.header.sh_entsize as usize
-    }
-
-    fn section_size(&self) -> usize {
-        self.header.sh_size as usize
-    }
 }
 
 impl Section64 {
@@ -153,6 +33,7 @@ impl Section64 {
             name: Default::default(),
         }
     }
+
     /// create binary without header
     pub fn to_le_bytes(&self) -> Vec<u8> {
         match &self.contents {
@@ -179,46 +60,6 @@ impl Section64 {
                 bytes
             }
         }
-    }
-
-    fn parse_bytes_as_rela_symbols(&self, bytes: Vec<u8>) -> Vec<relocation::Rela64> {
-        let entry_number = self.header.sh_size as usize / self.header.sh_entsize as usize;
-        let mut table = Vec::new();
-
-        for idx in 0..entry_number {
-            let start = idx * self.header.sh_entsize as usize;
-            let end = (idx + 1) * self.header.sh_entsize as usize;
-            let entry = bincode::deserialize(&bytes[start..end]).unwrap();
-            table.push(entry);
-        }
-
-        table
-    }
-    fn parse_bytes_as_dynamics(&self, bytes: Vec<u8>) -> Vec<dynamic::Dyn64> {
-        let entry_number = self.header.sh_size as usize / self.header.sh_entsize as usize;
-        let mut table = Vec::new();
-
-        for idx in 0..entry_number {
-            let start = idx * self.header.sh_entsize as usize;
-            let end = (idx + 1) * self.header.sh_entsize as usize;
-            let entry = bincode::deserialize(&bytes[start..end]).unwrap();
-            table.push(entry);
-        }
-
-        table
-    }
-    fn parse_bytes_as_symbols(&self, bytes: Vec<u8>) -> Vec<symbol::Symbol64> {
-        let entry_number = self.header.sh_size as usize / self.header.sh_entsize as usize;
-        let mut table = Vec::new();
-
-        for idx in 0..entry_number {
-            let start = idx * self.header.sh_entsize as usize;
-            let end = (idx + 1) * self.header.sh_entsize as usize;
-            let entry = bincode::deserialize(&bytes[start..end]).unwrap();
-            table.push(entry);
-        }
-
-        table
     }
 }
 
@@ -266,9 +107,7 @@ impl Default for Shdr64 {
 
 #[allow(dead_code)]
 impl Shdr64 {
-    pub fn size() -> Elf64Half {
-        0x40
-    }
+    pub const SIZE: usize = 0x40;
 
     // getter
     pub fn get_type(&self) -> section::Type {
@@ -287,7 +126,7 @@ impl Shdr64 {
     /// use elf_utilities::section::Shdr64;
     /// let null_sct : Shdr64 = Default::default();
     ///
-    /// assert_eq!([0].repeat(Shdr64::size() as usize), null_sct.to_le_bytes());
+    /// assert_eq!([0].repeat(Shdr64::SIZE), null_sct.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()

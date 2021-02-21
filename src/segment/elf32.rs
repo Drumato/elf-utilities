@@ -11,28 +11,6 @@ use serde::{Deserialize, Serialize};
 pub struct Segment32 {
     pub header: Phdr32,
 }
-impl Segment for Segment32 {
-    type Header = Phdr32;
-
-    fn new(header: Phdr32) -> Self {
-        Self { header }
-    }
-
-    fn header_deserialize(
-        buf: &[u8],
-        header_start: usize,
-    ) -> Result<Phdr32, Box<dyn std::error::Error>> {
-        match bincode::deserialize(&buf[header_start..]) {
-            Ok(header) => Ok(header),
-            Err(e) => Err(e),
-        }
-    }
-
-    fn header_size() -> usize {
-        Phdr32::size() as usize
-    }
-}
-
 impl Segment32 {
     pub fn new(header: Phdr32) -> Self {
         Self { header }
@@ -83,9 +61,7 @@ impl Default for Phdr32 {
 }
 
 impl Phdr32 {
-    pub fn size() -> Elf32Half {
-        0x20
-    }
+    pub const SIZE: usize = 0x20;
 
     // getter
     pub fn get_type(&self) -> segment_type::Type {
@@ -115,7 +91,7 @@ impl Phdr32 {
     /// use elf_utilities::segment::Phdr32;
     /// let null_phdr : Phdr32 = Default::default();
     ///
-    /// assert_eq!([0].repeat(Phdr32::size() as usize), null_phdr.to_le_bytes());
+    /// assert_eq!([0].repeat(Phdr32::SIZE), null_phdr.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()
