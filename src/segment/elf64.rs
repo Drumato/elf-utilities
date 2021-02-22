@@ -1,5 +1,7 @@
 //! Type definitions for 64-bit ELF binaries.
 
+use std::collections::HashSet;
+
 use crate::*;
 
 use crate::segment::*;
@@ -62,6 +64,21 @@ impl Phdr64 {
     pub fn get_type(&self) -> segment_type::Type {
         segment_type::Type::from(self.p_type)
     }
+    pub fn get_flags(&self) -> HashSet<segment::Flag> {
+        let mut mask: Elf64Word = 0b1;
+        let mut flags = HashSet::new();
+        loop {
+            if mask == 0 {
+                break;
+            }
+            if self.p_flags & mask != 0 {
+                flags.insert(segment::Flag::from(mask));
+            }
+            mask <<= 1;
+        }
+
+        flags
+    }
 
     // setter
     /// # Examples
@@ -76,6 +93,15 @@ impl Phdr64 {
     /// ```
     pub fn set_type(&mut self, ptype: segment_type::Type) {
         self.p_type = ptype.to_bytes();
+    }
+
+    pub fn set_flags<I>(&mut self, flags: I)
+    where
+        I: Iterator<Item = segment::Flag>,
+    {
+        for flag in flags {
+            self.p_flags = self.p_flags | Into::<Elf64Word>::into(flag);
+        }
     }
 
     /// Create Vec<u8> from this.

@@ -384,7 +384,10 @@ mod parse_tests {
             assert_eq!(f.sections[1].header.sh_addr, 0x318);
             assert_eq!(f.sections[1].header.sh_offset, 0x318);
             assert_eq!(f.sections[1].header.sh_addralign, 0x1);
-            assert_eq!(f.sections[1].header.sh_flags, section::SHF_ALLOC);
+            assert!(f.sections[1]
+                .header
+                .get_flags()
+                .contains(&section::Flag::Alloc));
             assert_eq!(f.sections[1].header.sh_size, 0x1c);
             assert!(
                 matches!(&f.sections[1].contents, Contents64::Raw(x) if x.len() == f.sections[1].header.sh_size as usize )
@@ -426,14 +429,15 @@ mod parse_tests {
             ));
 
             assert_eq!(f.segments[0].header.get_type(), segment::Type::Phdr);
-            assert_eq!(f.segments[0].header.p_flags, segment::PF_R);
+            assert!(f.segments[0].header.get_flags().contains(&segment::Flag::R));
             assert_eq!(f.segments[0].header.p_align, 8);
 
             assert_eq!(f.segments[1].header.get_type(), segment::Type::Interp);
-            assert_eq!(f.segments[1].header.p_flags, segment::PF_R);
+            assert!(f.segments[1].header.get_flags().contains(&segment::Flag::R));
             assert_eq!(f.segments[1].header.p_align, 1);
         }
     }
+
     #[test]
     fn read_elf32_test() {
         let f_result = parse_elf("src/parser/testdata/32bit");

@@ -34,7 +34,7 @@ impl ELF64 {
         // 新しいセクションのsh_name等を計算する為に
         // 現在の末尾のセクションを取得する
         let last_sct_idx = self.sections.len() - 1;
-        fill_elf_info(&mut sct, &self.sections[last_sct_idx]);
+        self.fill_elf_info(&mut sct, last_sct_idx, &self.sections[last_sct_idx]);
 
         // セクションの追加 => SHTの開始オフセットが変更される
         self.ehdr.e_shoff += sct.header.sh_size;
@@ -117,19 +117,23 @@ impl ELF64 {
         file_binary
     }
 
-    pub fn all_section_size(&self) -> u64 {
-        self.sections.iter().map(|sct| sct.header.sh_size).sum()
+    /// sh_nameやsh_offset等の調整
+    fn fill_elf_info(&self, new_sct: &mut Section64, prev_sct_idx: usize, prev_sct: &Section64) {
+        let prev_name_idx = prev_sct.header.sh_name;
+        let prev_name_len = prev_sct.name.as_bytes().len() as u32;
+        let prev_offset = prev_sct.header.sh_offset;
+        let prev_size = prev_sct.header.sh_size;
+
+        // <prev_section_name> の後に0x00が入るので，+1
+        new_sct.header.sh_name = prev_name_idx + prev_name_len + 1;
+
+        // NULLセクションのすぐ次に挿入する場合，
+        // sh_offsetはEhdr64::SIZE + PHT's SIZEという感じになる．
+        if prev_sct_idx == 0 {
+            new_sct.header.sh_offset = header::Ehdr64::SIZE as u64
+                + segment::Phdr64::SIZE as u64 * self.segments.len() as u64;
+        } else {
+            new_sct.header.sh_offset = prev_offset + prev_size;
+        }
     }
-}
-
-/// sh_nameやsh_offset等の調整
-fn fill_elf_info(new_sct: &mut Section64, prev_sct: &Section64) {
-    let prev_name_idx = prev_sct.header.sh_name;
-    let prev_name_len = prev_sct.name.as_bytes().len() as u32;
-    let prev_offset = prev_sct.header.sh_offset;
-    let prev_size = prev_sct.header.sh_size;
-
-    // <prev_section_name> の後に0x00が入るので，+1
-    new_sct.header.sh_name = prev_name_idx + prev_name_len + 1;
-    new_sct.header.sh_offset = prev_offset + prev_size;
 }

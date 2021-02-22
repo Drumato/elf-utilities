@@ -2,9 +2,34 @@
 
 use crate::*;
 
-/// segment is executable
-pub const PF_X: Elf64Word = 1 << 0;
-/// segment is writable
-pub const PF_W: Elf64Word = 1 << 1;
-/// segment is readable
-pub const PF_R: Elf64Word = 1 << 2;
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash)]
+/// Segment flags
+pub enum Flag {
+    /// Segment is executable
+    X,
+    /// segment is writable
+    W,
+    /// segment is readable
+    R,
+}
+
+impl Into<Elf64Word> for Flag {
+    fn into(self) -> Elf64Word {
+        match self {
+            Flag::X => 1 << 0,
+            Flag::W => 1 << 1,
+            Flag::R => 1 << 2,
+        }
+    }
+}
+
+impl From<Elf64Word> for Flag {
+    fn from(v: Elf64Word) -> Self {
+        match v {
+            0b1 => Flag::X,
+            0b10 => Flag::W,
+            0b100 => Flag::R,
+            _ => unimplemented!(),
+        }
+    }
+}

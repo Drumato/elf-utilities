@@ -1,3 +1,4 @@
+/// Symbol type definitions
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Type {
     /// Unspecified

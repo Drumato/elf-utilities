@@ -1,4 +1,8 @@
-use crate::{header, section, segment};
+use crate::{
+    header,
+    section::{self, Section32},
+    segment,
+};
 
 #[repr(C)]
 #[derive(Default, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
@@ -17,7 +21,7 @@ impl ELF32 {
         // 新しいセクションのsh_name等を計算する為に
         // 現在の末尾のセクションを取得する
         let last_sct_idx = self.sections.len() - 1;
-        fill_elf_info(&mut sct, &self.sections[last_sct_idx]);
+        self.fill_elf_info(&mut sct, last_sct_idx, &self.sections[last_sct_idx]);
 
         // セクションの追加 => SHTの開始オフセットが変更される
         self.ehdr.e_shoff += sct.header.sh_size;
@@ -63,16 +67,24 @@ impl ELF32 {
         }
         file_binary
     }
-}
 
-/// sh_nameやsh_offset等の調整
-fn fill_elf_info(new_sct: &mut section::Section32, prev_sct: &section::Section32) {
-    let prev_name_idx = prev_sct.header.sh_name;
-    let prev_name_len = prev_sct.name.as_bytes().len() as u32;
-    let prev_offset = prev_sct.header.sh_offset;
-    let prev_size = prev_sct.header.sh_size;
+    /// sh_nameやsh_offset等の調整
+    fn fill_elf_info(&self, new_sct: &mut Section32, prev_sct_idx: usize, prev_sct: &Section32) {
+        let prev_name_idx = prev_sct.header.sh_name;
+        let prev_name_len = prev_sct.name.as_bytes().len() as u32;
+        let prev_offset = prev_sct.header.sh_offset;
+        let prev_size = prev_sct.header.sh_size;
 
-    // <prev_section_name> の後に0x00が入るので，+1
-    new_sct.header.sh_name = prev_name_idx + prev_name_len + 1;
-    new_sct.header.sh_offset = prev_offset + prev_size;
+        // <prev_section_name> の後に0x00が入るので，+1
+        new_sct.header.sh_name = prev_name_idx + prev_name_len + 1;
+
+        // NULLセクションのすぐ次に挿入する場合，
+        // sh_offsetはEhdr32::SIZE + PHT's SIZEという感じになる．
+        if prev_sct_idx == 0 {
+            new_sct.header.sh_offset = header::Ehdr32::SIZE as u32
+                + segment::Phdr32::SIZE as u32 * self.segments.len() as u32;
+        } else {
+            new_sct.header.sh_offset = prev_offset + prev_size;
+        }
+    }
 }

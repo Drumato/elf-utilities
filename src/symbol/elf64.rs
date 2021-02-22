@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 /// Symbol64 はシンボルテーブルセクションのエントリである．
 /// ELF64で用いることを想定している．
 ///
-///
 /// Defaultトレイトを実装しているので，
 /// `Default::default()` を呼び出すことで簡単にNULLシンボルを作成できる．
 ///
@@ -22,7 +21,6 @@ use serde::{Deserialize, Serialize};
 /// let null_sym2 : Symbol64 = Symbol64::new_null_symbol();
 ///
 /// assert_eq!(null_sym, null_sym2);
-///
 /// ```
 ///
 /// ELFファイルを生成する用途でこのライブラリを使用できるように，
@@ -36,7 +34,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// // to_le_bytes() を利用してバイト列に変換できる．
 /// let sym_bytes = null_sym.to_le_bytes();
-/// assert_eq!(Symbol64::size(),sym_bytes.len() as elf_utilities::Elf64Xword)
+/// assert_eq!(Symbol64::SIZE, sym_bytes.len())
 /// ```
 #[derive(Default, Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
@@ -45,10 +43,11 @@ pub struct Symbol64 {
     pub st_name: Elf64Word,
 
     /// Information that includes [symbol binds and symbol types](https://docs.rs/elf-utilities/latest/elf_utilities/symbol/elf64/index.html#constants).
+    /// symbol typeやsymbol bindを使用する際は，対応するメソッドを使用することを推奨する．
     pub st_info: u8,
 
     /// Symbol's visibility.
-    /// See [symbol::VISIBILITY](https://docs.rs/elf-utilities/latest/elf_utilities/symbol/symbol_visibility/enum.VISIBILITY.html).
+    /// See [Visibility](../symbol_visibility/Visibility).
     pub st_other: u8,
 
     /// A section table index that includes the symbol.
@@ -68,12 +67,10 @@ pub struct Symbol64 {
 
 #[allow(dead_code)]
 impl Symbol64 {
+    pub const SIZE: usize = 24;
+    /// NULLシンボルの作成
     pub fn new_null_symbol() -> Self {
         Default::default()
-    }
-    /// size() provides Symbol64's size used by Shdr64.sh_entsize or else.
-    pub fn size() -> Elf64Xword {
-        24
     }
 
     /// for utilities
@@ -91,6 +88,7 @@ impl Symbol64 {
     pub fn get_bind(&self) -> symbol::Bind {
         symbol::Bind::from(self.st_info >> 4)
     }
+
     pub fn get_visibility(&self) -> symbol::Visibility {
         symbol::Visibility::from(self.st_other & 0x03)
     }
@@ -118,7 +116,7 @@ impl Symbol64 {
     /// use elf_utilities::symbol::Symbol64;
     /// let null_sym : Symbol64 = Default::default();
     ///
-    /// assert_eq!([0].repeat(Symbol64::size() as usize), null_sym.to_le_bytes());
+    /// assert_eq!([0].repeat(Symbol64::SIZE), null_sym.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()
