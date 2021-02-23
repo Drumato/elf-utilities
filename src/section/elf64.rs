@@ -52,6 +52,21 @@ pub struct Shdr64 {
     pub sh_entsize: Elf64Xword,
 }
 
+/// A `Shdr64` builder
+///
+/// # Examples
+///
+/// ```
+/// use elf_utilities::section;
+/// let shdr: section::Shdr64 = section::ShdrPreparation64::default()
+///            .ty(section::Type::ProgBits)
+///            .flags(vec![section::Flag::Alloc, section::Flag::Write].iter())
+///            .into();
+///
+/// assert_eq!(section::Type::ProgBits, shdr.get_type());
+/// assert!(shdr.get_flags().contains(&section::Flag::Alloc));
+/// assert!(shdr.get_flags().contains(&section::Flag::Write));
+/// ```
 #[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq)]
 #[repr(C)]
 pub struct ShdrPreparation64 {
@@ -59,8 +74,6 @@ pub struct ShdrPreparation64 {
     pub sh_type: section::Type,
     /// Miscellaneous section attributes
     pub sh_flags: Elf64Xword,
-    /// Section file offset
-    pub sh_offset: Elf64Off,
     /// Index of another section
     pub sh_link: Elf64Word,
     /// Additional section information
@@ -184,18 +197,57 @@ impl Section64 {
     }
 }
 
+impl ShdrPreparation64 {
+    pub fn ty(mut self, t: section::Type) -> Self {
+        self.sh_type = t;
+        self
+    }
+
+    pub fn flags<'a, I>(mut self, flags: I) -> Self
+    where
+        I: Iterator<Item = &'a section::Flag>,
+    {
+        for flag in flags {
+            self.sh_flags |= Into::<Elf64Xword>::into(*flag);
+        }
+
+        self
+    }
+
+    pub fn link(mut self, link: Elf64Word) -> Self {
+        self.sh_link = link;
+        self
+    }
+    pub fn info(mut self, info: Elf64Word) -> Self {
+        self.sh_info = info;
+        self
+    }
+}
+
+impl Default for ShdrPreparation64 {
+    fn default() -> Self {
+        Self {
+            sh_type: section::Type::Null,
+            sh_flags: 0,
+            sh_link: 0,
+            sh_info: 0,
+            sh_addralign: 0,
+        }
+    }
+}
+
 impl Into<Shdr64> for ShdrPreparation64 {
     fn into(self) -> Shdr64 {
         Shdr64 {
             sh_name: 0,
             sh_type: self.sh_type.into(),
-            sh_flags: 0,
+            sh_flags: self.sh_flags,
             sh_addr: 0,
             sh_offset: 0,
             sh_size: 0,
-            sh_link: 0,
-            sh_info: 0,
-            sh_addralign: 0,
+            sh_link: self.sh_link,
+            sh_info: self.sh_info,
+            sh_addralign: self.sh_addralign,
             sh_entsize: 0,
         }
     }
