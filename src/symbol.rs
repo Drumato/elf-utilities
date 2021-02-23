@@ -11,9 +11,3 @@ mod elf64;
 mod symbol_bind;
 mod symbol_type;
 mod symbol_visibility;
-
-/* definitions for st_info(bind) */
-/// Local Symbol
-pub const STB_LOCAL: u8 = 0;
-/// Global Symbol
-pub const STB_GLOBAL: u8 = 1;

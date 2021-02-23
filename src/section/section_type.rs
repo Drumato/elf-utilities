@@ -2,7 +2,7 @@
 
 use crate::*;
 
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Hash, Copy, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Type {
     /// Section header table entry unused
     Null,
@@ -43,8 +43,8 @@ pub enum Type {
     Any(Elf64Word),
 }
 
-impl Type {
-    pub fn to_bytes(&self) -> Elf64Word {
+impl Into<Elf64Word> for Type {
+    fn into(self) -> Elf64Word {
         match self {
             Self::Null => 0,
             Self::ProgBits => 1,
@@ -64,7 +64,7 @@ impl Type {
             Self::Group => 17,
             Self::SymTabShNdx => 18,
             Self::Num => 19,
-            Self::Any(c) => *c,
+            Self::Any(c) => c,
         }
     }
 }

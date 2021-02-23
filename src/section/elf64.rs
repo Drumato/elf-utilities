@@ -1,5 +1,7 @@
 //! Type definitions for 64-bit ELF binaries.
 
+use std::collections::HashSet;
+
 use crate::section;
 use crate::*;
 
@@ -25,12 +27,131 @@ pub struct Section64 {
     pub contents: Contents64,
 }
 
+#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
+#[repr(C)]
+pub struct Shdr64 {
+    /// Section name, index in string tbl
+    pub sh_name: Elf64Word,
+    /// Type of section
+    pub sh_type: Elf64Word,
+    /// Miscellaneous section attributes
+    pub sh_flags: Elf64Xword,
+    ///  Section virtual addr at execution
+    pub sh_addr: Elf64Addr,
+    /// Section file offset
+    pub sh_offset: Elf64Off,
+    /// Size of section in bytes
+    pub sh_size: Elf64Xword,
+    /// Index of another section
+    pub sh_link: Elf64Word,
+    /// Additional section information
+    pub sh_info: Elf64Word,
+    /// Section alignment
+    pub sh_addralign: Elf64Xword,
+    /// Entry size if section holds table
+    pub sh_entsize: Elf64Xword,
+}
+
+#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[repr(C)]
+pub struct ShdrPreparation64 {
+    /// Type of section
+    pub sh_type: section::Type,
+    /// Miscellaneous section attributes
+    pub sh_flags: Elf64Xword,
+    /// Section file offset
+    pub sh_offset: Elf64Off,
+    /// Index of another section
+    pub sh_link: Elf64Word,
+    /// Additional section information
+    pub sh_info: Elf64Word,
+    /// Section alignment
+    pub sh_addralign: Elf64Xword,
+}
+
+impl Default for Shdr64 {
+    fn default() -> Self {
+        Self {
+            sh_name: 0,
+            sh_type: 0,
+            sh_flags: 0,
+            sh_addr: 0,
+            sh_offset: 0,
+            sh_size: 0,
+            sh_link: 0,
+            sh_info: 0,
+            sh_addralign: 0,
+            sh_entsize: 0,
+        }
+    }
+}
+
+#[allow(dead_code)]
+impl Shdr64 {
+    pub const SIZE: usize = 0x40;
+
+    // getter
+    pub fn get_type(&self) -> section::Type {
+        section::Type::from(self.sh_type)
+    }
+    pub fn get_flags(&self) -> HashSet<section::Flag> {
+        let mut mask: Elf64Xword = 0b1;
+        let mut flags = HashSet::new();
+        loop {
+            if mask == 0 {
+                break;
+            }
+            if self.sh_flags & mask != 0 {
+                flags.insert(section::Flag::from(mask));
+            }
+            mask <<= 1;
+        }
+
+        flags
+    }
+
+    // setter
+    pub fn set_type(&mut self, ty: section::Type) {
+        self.sh_type = ty.into();
+    }
+    pub fn set_flags<I>(&mut self, flags: I)
+    where
+        I: Iterator<Item = section::Flag>,
+    {
+        for flag in flags {
+            self.sh_flags = self.sh_flags | Into::<Elf64Xword>::into(flag);
+        }
+    }
+
+    /// Create Vec<u8> from this.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use elf_utilities::section::Shdr64;
+    /// let null_sct : Shdr64 = Default::default();
+    ///
+    /// assert_eq!([0].repeat(Shdr64::SIZE), null_sct.to_le_bytes());
+    /// ```
+    pub fn to_le_bytes(&self) -> Vec<u8> {
+        bincode::serialize(self).unwrap()
+    }
+}
+
 impl Section64 {
     pub fn new_null_section() -> Self {
         Self {
             contents: Contents64::Raw(Default::default()),
             header: Default::default(),
             name: Default::default(),
+        }
+    }
+
+    pub fn new(name: String, hdr: ShdrPreparation64, contents: Contents64) -> Self {
+        Self {
+            contents,
+            name,
+            header: hdr.into(),
         }
     }
 
@@ -63,36 +184,11 @@ impl Section64 {
     }
 }
 
-#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
-#[repr(C)]
-pub struct Shdr64 {
-    /// Section name, index in string tbl
-    pub sh_name: Elf64Word,
-    /// Type of section
-    pub sh_type: Elf64Word,
-    /// Miscellaneous section attributes
-    pub sh_flags: Elf64Xword,
-    ///  Section virtual addr at execution
-    pub sh_addr: Elf64Addr,
-    /// Section file offset
-    pub sh_offset: Elf64Off,
-    /// Size of section in bytes
-    pub sh_size: Elf64Xword,
-    /// Index of another section
-    pub sh_link: Elf64Word,
-    /// Additional section information
-    pub sh_info: Elf64Word,
-    /// Section alignment
-    pub sh_addralign: Elf64Xword,
-    /// Entry size if section holds table
-    pub sh_entsize: Elf64Xword,
-}
-
-impl Default for Shdr64 {
-    fn default() -> Self {
-        Self {
+impl Into<Shdr64> for ShdrPreparation64 {
+    fn into(self) -> Shdr64 {
+        Shdr64 {
             sh_name: 0,
-            sh_type: 0,
+            sh_type: self.sh_type.into(),
             sh_flags: 0,
             sh_addr: 0,
             sh_offset: 0,
@@ -102,33 +198,5 @@ impl Default for Shdr64 {
             sh_addralign: 0,
             sh_entsize: 0,
         }
-    }
-}
-
-#[allow(dead_code)]
-impl Shdr64 {
-    pub const SIZE: usize = 0x40;
-
-    // getter
-    pub fn get_type(&self) -> section::Type {
-        section::Type::from(self.sh_type)
-    }
-    // setter
-    pub fn set_type(&mut self, ty: section::Type) {
-        self.sh_type = ty.to_bytes();
-    }
-
-    /// Create Vec<u8> from this.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use elf_utilities::section::Shdr64;
-    /// let null_sct : Shdr64 = Default::default();
-    ///
-    /// assert_eq!([0].repeat(Shdr64::SIZE), null_sct.to_le_bytes());
-    /// ```
-    pub fn to_le_bytes(&self) -> Vec<u8> {
-        bincode::serialize(self).unwrap()
     }
 }

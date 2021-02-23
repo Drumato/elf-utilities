@@ -46,9 +46,7 @@ impl Default for Ehdr32 {
 }
 
 impl Ehdr32 {
-    pub fn size() -> Elf64Half {
-        52
-    }
+    pub const SIZE: Elf32Half = 52;
 
     pub fn get_class(&self) -> class::Class {
         class::Class::from(self.e_ident[class::Class::INDEX])
