@@ -135,5 +135,7 @@ impl ELF64 {
         } else {
             new_sct.header.sh_offset = prev_offset + prev_size;
         }
+
+        new_sct.header.sh_size = new_sct.contents.size() as u64;
     }
 }

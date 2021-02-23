@@ -87,6 +87,19 @@ impl Default for Contents32 {
     }
 }
 
+impl Contents32 {
+    pub fn size(&self) -> usize {
+        match self {
+            Contents32::Raw(bytes) => bytes.len(),
+            Contents32::Symbols(syms) => symbol::Symbol32::SIZE * syms.len(),
+            Contents32::RelaSymbols(rela_syms) => {
+                relocation::Rela32::SIZE as usize * rela_syms.len()
+            }
+            Contents32::Dynamics(dyn_info) => dynamic::Dyn32::SIZE * dyn_info.len(),
+        }
+    }
+}
+
 impl Default for Shdr32 {
     fn default() -> Self {
         Self {

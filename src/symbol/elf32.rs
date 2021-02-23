@@ -36,7 +36,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// // to_le_bytes() を利用してバイト列に変換できる．
 /// let sym_bytes = null_sym.to_le_bytes();
-/// assert_eq!(Symbol32::size() as usize, sym_bytes.len())
+/// assert_eq!(Symbol32::SIZE as usize, sym_bytes.len())
 /// ```
 #[derive(Default, Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
@@ -68,12 +68,10 @@ pub struct Symbol32 {
 
 #[allow(dead_code)]
 impl Symbol32 {
+    /// SIZE provides Symbol32's size used by Shdr32.sh_entsize or else.
+    pub const SIZE: usize = 0x10;
     pub fn new_null_symbol() -> Self {
         Default::default()
-    }
-    /// size() provides Symbol32's size used by Shdr32.sh_entsize or else.
-    pub fn size() -> Elf32Xword {
-        0x10
     }
 
     /// for utilities
@@ -118,7 +116,7 @@ impl Symbol32 {
     /// use elf_utilities::symbol::Symbol32;
     /// let null_sym : Symbol32 = Default::default();
     ///
-    /// assert_eq!([0].repeat(Symbol32::size() as usize), null_sym.to_le_bytes());
+    /// assert_eq!([0].repeat(Symbol32::SIZE as usize), null_sym.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()

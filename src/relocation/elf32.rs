@@ -16,9 +16,7 @@ pub struct Rela32 {
 
 #[allow(dead_code)]
 impl Rela32 {
-    pub fn size() -> Elf32Xword {
-        12
-    }
+    pub const SIZE: Elf32Xword = 12;
     pub fn get_sym(&self) -> Elf32Word {
         self.r_info >> 8
     }
@@ -54,7 +52,7 @@ impl Rela32 {
     /// use elf_utilities::relocation::Rela32;
     /// let null_rel : Rela32 = Default::default();
     ///
-    /// assert_eq!([0].repeat(Rela32::size() as usize), null_rel.to_le_bytes());
+    /// assert_eq!([0].repeat(Rela32::SIZE as usize), null_rel.to_le_bytes());
     /// ```
     pub fn to_le_bytes(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()

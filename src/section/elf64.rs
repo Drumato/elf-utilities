@@ -252,3 +252,16 @@ impl Into<Shdr64> for ShdrPreparation64 {
         }
     }
 }
+
+impl Contents64 {
+    pub fn size(&self) -> usize {
+        match self {
+            Contents64::Raw(bytes) => bytes.len(),
+            Contents64::Symbols(syms) => symbol::Symbol64::SIZE * syms.len(),
+            Contents64::RelaSymbols(rela_syms) => {
+                relocation::Rela64::SIZE as usize * rela_syms.len()
+            }
+            Contents64::Dynamics(dyn_info) => dynamic::Dyn64::SIZE * dyn_info.len(),
+        }
+    }
+}
