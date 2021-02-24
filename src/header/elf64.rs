@@ -39,7 +39,7 @@ impl Default for Ehdr64 {
             e_phentsize: segment::Phdr64::SIZE as Elf64Half,
             e_phnum: 0,
             e_shentsize: section::Shdr64::SIZE as Elf64Half,
-            e_shnum: 0,
+            e_shnum: 1, // NULLセクションの分
             e_shstrndx: 0,
         }
     }

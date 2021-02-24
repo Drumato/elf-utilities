@@ -105,7 +105,6 @@ impl ELF64 {
         }
 
         for sct in self.sections.iter() {
-            // セクションタイプによって処理を変える
             let mut section_binary = sct.to_le_bytes();
             file_binary.append(&mut section_binary);
         }
