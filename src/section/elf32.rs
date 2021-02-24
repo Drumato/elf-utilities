@@ -185,12 +185,12 @@ impl Shdr32 {
     pub fn set_type(&mut self, ty: section::Type) {
         self.sh_type = ty.into();
     }
-    pub fn set_flags<I>(&mut self, flags: I)
+    pub fn set_flags<'a, I>(&mut self, flags: I)
     where
-        I: Iterator<Item = section::Flag>,
+        I: Iterator<Item = &'a section::Flag>,
     {
         for flag in flags {
-            self.sh_flags = self.sh_flags | Into::<Elf32Word>::into(flag);
+            self.sh_flags = self.sh_flags | Into::<Elf32Word>::into(*flag);
         }
     }
 

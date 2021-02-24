@@ -62,13 +62,21 @@ impl Default for Phdr32 {
 
 impl Phdr32 {
     pub const SIZE: usize = 0x20;
-
     // getter
     pub fn get_type(&self) -> segment_type::Type {
         segment_type::Type::from(self.p_type)
     }
 
     // setter
+    pub fn set_flags<'a, I>(&mut self, flags: I)
+    where
+        I: Iterator<Item = &'a segment::Flag>,
+    {
+        for flag in flags {
+            self.p_flags = self.p_flags | Into::<Elf32Word>::into(*flag);
+        }
+    }
+
     /// # Examples
     ///
     /// ```

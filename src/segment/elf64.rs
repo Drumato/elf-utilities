@@ -95,12 +95,12 @@ impl Phdr64 {
         self.p_type = ptype.to_bytes();
     }
 
-    pub fn set_flags<I>(&mut self, flags: I)
+    pub fn set_flags<'a, I>(&mut self, flags: I)
     where
-        I: Iterator<Item = segment::Flag>,
+        I: Iterator<Item = &'a segment::Flag>,
     {
         for flag in flags {
-            self.p_flags = self.p_flags | Into::<Elf64Word>::into(flag);
+            self.p_flags = self.p_flags | Into::<Elf64Word>::into(*flag);
         }
     }
 
