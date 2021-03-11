@@ -287,4 +287,21 @@ impl Contents64 {
             Contents64::Dynamics(dyn_info) => dynamic::Dyn64::SIZE * dyn_info.len(),
         }
     }
+
+    pub fn new_string_table(strs: Vec<String>) -> Self {
+        let mut name_idx = 1;
+        let strs = strs
+            .iter()
+            .map(|s| {
+                let ent = StrTabEntry {
+                    v: s.clone(),
+                    idx: name_idx,
+                };
+                name_idx += s.len() + 1;
+                ent
+            })
+            .collect();
+
+        Contents64::StrTab(strs)
+    }
 }
