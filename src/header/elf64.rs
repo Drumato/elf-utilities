@@ -2,7 +2,7 @@ use crate::header::{class, data, elf_type, machine, osabi, version};
 use crate::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Ehdr64 {
     pub e_ident: [u8; 16],
@@ -39,7 +39,7 @@ impl Default for Ehdr64 {
             e_phentsize: segment::Phdr64::SIZE as Elf64Half,
             e_phnum: 0,
             e_shentsize: section::Shdr64::SIZE as Elf64Half,
-            e_shnum: 1, // NULLセクションの分
+            e_shnum: 0,
             e_shstrndx: 0,
         }
     }
