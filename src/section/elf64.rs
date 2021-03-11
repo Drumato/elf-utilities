@@ -7,7 +7,9 @@ use crate::*;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+use super::StrTabEntry;
+
+#[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub enum Contents64 {
     /// almost section's data
     Raw(Vec<u8>),
@@ -17,6 +19,8 @@ pub enum Contents64 {
     RelaSymbols(Vec<relocation::Rela64>),
     /// dynamic information
     Dynamics(Vec<dynamic::Dyn64>),
+    /// String Table
+    StrTab(Vec<StrTabEntry>),
 }
 
 #[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
@@ -27,7 +31,7 @@ pub struct Section64 {
     pub contents: Contents64,
 }
 
-#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Shdr64 {
     /// Section name, index in string tbl
@@ -172,6 +176,20 @@ impl Section64 {
     pub fn to_le_bytes(&self) -> Vec<u8> {
         match &self.contents {
             Contents64::Raw(bytes) => bytes.clone(),
+            Contents64::StrTab(strs) => {
+                // ELFの文字列テーブルは null-byte + (name + null-byte) * n という形状に
+                // それに合うようにバイト列を構築.
+                let mut string_table: Vec<u8> = vec![0x00];
+
+                for st in strs {
+                    for byte in st.v.as_bytes() {
+                        string_table.push(*byte);
+                    }
+                    string_table.push(0x00);
+                }
+
+                string_table
+            }
             Contents64::Symbols(syms) => {
                 let mut bytes = Vec::new();
                 for sym in syms.iter() {
@@ -257,6 +275,11 @@ impl Contents64 {
     pub fn size(&self) -> usize {
         match self {
             Contents64::Raw(bytes) => bytes.len(),
+            Contents64::StrTab(strs) => {
+                // ELFの文字列テーブルは null-byte + (name + null-byte) * n という形状に
+                let total_len: usize = strs.iter().map(|s| s.v.len()).sum();
+                total_len + strs.len() + 1
+            }
             Contents64::Symbols(syms) => symbol::Symbol64::SIZE * syms.len(),
             Contents64::RelaSymbols(rela_syms) => {
                 relocation::Rela64::SIZE as usize * rela_syms.len()

@@ -6,11 +6,15 @@ use crate::*;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+use super::StrTabEntry;
+
+#[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 /// section's contents
 pub enum Contents32 {
     /// almost section's data
     Raw(Vec<u8>),
+    /// String Table
+    StrTab(Vec<StrTabEntry>),
     /// symbol table's representation
     Symbols(Vec<symbol::Symbol32>),
     /// relocation symbol table's representation
@@ -26,7 +30,7 @@ pub struct Section32 {
     pub contents: Contents32,
 }
 
-#[derive(Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Shdr32 {
     /// Section name, index in string tbl
@@ -91,6 +95,11 @@ impl Contents32 {
     pub fn size(&self) -> usize {
         match self {
             Contents32::Raw(bytes) => bytes.len(),
+            Contents32::StrTab(strs) => {
+                // ELFの文字列テーブルは null-byte + (name + null-byte) * n という形状に
+                let total_len: usize = strs.iter().map(|s| s.v.len()).sum();
+                total_len + strs.len() + 1
+            }
             Contents32::Symbols(syms) => symbol::Symbol32::SIZE * syms.len(),
             Contents32::RelaSymbols(rela_syms) => {
                 relocation::Rela32::SIZE as usize * rela_syms.len()
@@ -130,6 +139,20 @@ impl Section32 {
     pub fn to_le_bytes(&self) -> Vec<u8> {
         match &self.contents {
             Contents32::Raw(bytes) => bytes.clone(),
+            Contents32::StrTab(strs) => {
+                // ELFの文字列テーブルは null-byte + (name + null-byte) * n という形状に
+                // それに合うようにバイト列を構築.
+                let mut string_table: Vec<u8> = vec![0x00];
+
+                for st in strs {
+                    for byte in st.v.as_bytes() {
+                        string_table.push(*byte);
+                    }
+                    string_table.push(0x00);
+                }
+
+                string_table
+            }
             Contents32::Symbols(syms) => {
                 let mut bytes = Vec::new();
                 for sym in syms.iter() {

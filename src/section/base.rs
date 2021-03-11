@@ -1,6 +1,6 @@
 use super::{Contents32, Contents64, Section32, Section64, Shdr32, Shdr64, Type};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub(crate) struct Section {
     pub name: String,
     pub header: Shdr,
@@ -8,16 +8,22 @@ pub(crate) struct Section {
     pub contents: Contents,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub(crate) enum Shdr {
     Shdr64(Shdr64),
     Shdr32(Shdr32),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub(crate) enum Contents {
     Contents64(Contents64),
     Contents32(Contents32),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct StrTabEntry {
+    pub v: String,
+    pub idx: usize,
 }
 
 impl Section {
@@ -100,14 +106,14 @@ impl Contents {
             _ => unreachable!(),
         }
     }
-    pub fn as_raw(&self) -> Vec<u8> {
+    pub fn as_strtab(&self) -> Vec<StrTabEntry> {
         match self {
             Contents::Contents32(contents) => match contents {
-                Contents32::Raw(v) => v.clone(),
+                Contents32::StrTab(v) => v.clone(),
                 _ => unreachable!(),
             },
             Contents::Contents64(contents) => match contents {
-                Contents64::Raw(v) => v.clone(),
+                Contents64::StrTab(v) => v.clone(),
                 _ => unreachable!(),
             },
         }

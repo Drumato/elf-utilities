@@ -75,6 +75,7 @@ pub fn parse_elf(file_path: &str) -> Result<file::ELF, Box<dyn std::error::Error
 /// セクションヘッダテーブルのパース
 fn read_sht(
     class: header::Class,
+
     section_number: usize,
     sht_offset: usize,
     buf: &[u8],
@@ -107,6 +108,7 @@ fn read_sht(
                 buf[section_offset..section_offset + sct.size() as usize].to_vec();
 
             sct.contents = match section_type {
+                section::Type::StrTab => parse_string_table(class, &section_raw_contents),
                 section::Type::SymTab => parse_symbol_table(class, &sct, &section_raw_contents),
                 section::Type::Rela => parse_rela_symbol_table(class, &sct, &section_raw_contents),
                 section::Type::Dynamic => {
@@ -128,6 +130,39 @@ fn read_sht(
     }
 
     Ok(sections)
+}
+
+fn parse_string_table(class: header::Class, section_raw_contents: &Vec<u8>) -> section::Contents {
+    let mut strs: Vec<section::StrTabEntry> = Default::default();
+    let mut name_idx = 0;
+    loop {
+        if name_idx >= section_raw_contents.len() {
+            break;
+        }
+
+        if section_raw_contents[name_idx] == 0x00 {
+            name_idx += 1;
+            continue;
+        }
+
+        let nul_range_end = section_raw_contents[name_idx..]
+            .iter()
+            .position(|&c| c == b'\0')
+            .unwrap_or(section_raw_contents.len());
+        let s = std::str::from_utf8(&section_raw_contents[name_idx..name_idx + nul_range_end])
+            .unwrap()
+            .to_string();
+
+        let idx = name_idx;
+        name_idx += s.len();
+        strs.push(section::StrTabEntry { v: s, idx });
+    }
+
+    match class {
+        header::Class::Bit32 => section::Contents::Contents32(section::Contents32::StrTab(strs)),
+        header::Class::Bit64 => section::Contents::Contents64(section::Contents64::StrTab(strs)),
+        _ => todo!(),
+    }
 }
 fn parse_rela_symbol_table(
     class: header::Class,
@@ -234,17 +269,21 @@ fn read_pht(
 /// セクション名を.shstrtabから探して，Section構造体に書き込む
 /// このようにしているのは，SHTのパースがすべて終わってからでないとshstrtabを使用できない為
 fn naming_sections_from_shstrtab(shstrndx: usize, sections: &mut Vec<section::Section>) {
-    let shstrtab = sections[shstrndx].contents.as_raw();
+    let shstrtab = sections[shstrndx].contents.as_strtab();
+
     for sct in sections.iter_mut() {
         let name_idx = sct.name_idx();
-        let raw_name: Vec<u8> = shstrtab[name_idx..]
-            .to_vec()
-            .iter()
-            .take_while(|byte| **byte != 0x00)
-            .copied()
-            .collect();
+        if name_idx == 0 {
+            continue;
+        }
 
-        sct.name = std::str::from_utf8(&raw_name).unwrap().to_string();
+        let s = shstrtab
+            .iter()
+            .find(|&s| s.idx <= name_idx && name_idx <= s.idx + s.v.len())
+            .unwrap();
+
+        let (_, name) = s.v.split_at(name_idx - s.idx);
+        sct.name = name.to_string();
     }
 }
 
@@ -258,32 +297,43 @@ fn naming_symbols(sections: &mut Vec<section::Section>) {
             continue;
         }
 
-        let strtab = sections[sct.link()].contents.as_raw();
+        let strtab = sections[sct.link()].contents.as_strtab();
 
         match &mut sections[sct_idx].contents {
             section::Contents::Contents32(c) => {
                 if let section::Contents32::Symbols(ref mut symbols) = c {
                     for sym in symbols.iter_mut() {
-                        let raw_name: Vec<u8> = strtab[sym.st_name as usize..]
-                            .to_vec()
+                        let name_idx = sym.st_name as usize;
+                        if name_idx == 0 {
+                            continue;
+                        }
+
+                        let s = strtab
                             .iter()
-                            .take_while(|byte| **byte != 0x00)
-                            .copied()
-                            .collect();
-                        sym.symbol_name = std::str::from_utf8(&raw_name).unwrap().to_string();
+                            .find(|s| s.idx <= name_idx && name_idx <= s.idx + s.v.len())
+                            .unwrap();
+                        let (_, name) = s.v.split_at(name_idx - s.idx);
+
+                        sym.symbol_name = name.to_string();
                     }
                 }
             }
+
             section::Contents::Contents64(c) => {
                 if let section::Contents64::Symbols(ref mut symbols) = c {
                     for sym in symbols.iter_mut() {
-                        let raw_name: Vec<u8> = strtab[sym.st_name as usize..]
-                            .to_vec()
+                        let name_idx = sym.st_name as usize;
+                        if name_idx == 0 {
+                            continue;
+                        }
+
+                        let s = strtab
                             .iter()
-                            .take_while(|byte| **byte != 0x00)
-                            .copied()
-                            .collect();
-                        sym.symbol_name = std::str::from_utf8(&raw_name).unwrap().to_string();
+                            .find(|s| s.idx <= name_idx && name_idx <= s.idx + s.v.len())
+                            .unwrap();
+                        let (_, name) = s.v.split_at(name_idx - s.idx);
+
+                        sym.symbol_name = name.to_string();
                     }
                 }
             }
