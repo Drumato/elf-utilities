@@ -3,7 +3,7 @@ use segment::Segment64;
 
 use crate::{
     header,
-    section::{self, Contents64, ShdrPreparation64, StrTabEntry},
+    section::{self, Contents64, StrTabEntry},
     segment,
 };
 

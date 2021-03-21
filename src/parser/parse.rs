@@ -109,7 +109,9 @@ fn read_sht(
 
             sct.contents = match section_type {
                 section::Type::StrTab => parse_string_table(class, &section_raw_contents),
-                section::Type::SymTab => parse_symbol_table(class, &sct, &section_raw_contents),
+                section::Type::SymTab | section::Type::DynSym => {
+                    parse_symbol_table(class, &sct, &section_raw_contents)
+                }
                 section::Type::Rela => parse_rela_symbol_table(class, &sct, &section_raw_contents),
                 section::Type::Dynamic => {
                     parse_dynamic_information(class, &sct, &section_raw_contents)
