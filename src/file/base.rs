@@ -1,6 +1,9 @@
 use super::{ELF32, ELF64};
 use std::io::{BufWriter, Write};
+#[cfg(target_family = "unix")]
 use std::os::unix::fs::OpenOptionsExt;
+#[cfg(target_family = "windows")]
+use std::os::windows::fs::OpenOptionsExt;
 
 pub enum ELF {
     ELF32(ELF32),
@@ -44,12 +47,22 @@ impl ELFDumper {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let bytes = self.file.to_le_bytes();
 
+        #[cfg(target_family = "unix")]
         let file = std::fs::OpenOptions::new()
             .create(true)
             .read(true)
             .write(true)
             .mode(permission)
             .open(output_filename)?;
+
+        #[cfg(target_family = "windows")]
+            let file = std::fs::OpenOptions::new()
+            .create(true)
+            .read(true)
+            .write(true)
+            .access_mode(permission)
+            .open(output_filename)?;
+
         let mut writer = BufWriter::new(file);
         writer.write_all(&bytes)?;
         writer.flush()?;
