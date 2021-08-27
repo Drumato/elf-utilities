@@ -11,7 +11,7 @@ pub struct Dyn32 {
 }
 
 impl Dyn32 {
-    pub const SIZE: usize = 0x10;
+    pub const SIZE: usize = 0x8;
     pub fn get_type(&self) -> dynamic::EntryType {
         dynamic::EntryType::from(self.d_tag as i64)
     }
