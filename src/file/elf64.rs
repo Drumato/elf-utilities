@@ -121,18 +121,33 @@ impl ELF64 {
     }
 
     pub fn to_le_bytes(&self) -> Vec<u8> {
+        let mut emitted_len = 0;
         let mut file_binary: Vec<u8> = Vec::new();
 
         let mut header_binary = self.ehdr.to_le_bytes();
+        emitted_len += header_binary.len();
         file_binary.append(&mut header_binary);
 
         for seg in self.segments.iter() {
             let mut phdr_binary = seg.header.to_le_bytes();
+            emitted_len += phdr_binary.len();
             file_binary.append(&mut phdr_binary);
         }
 
-        for sct in self.sections.iter() {
+        for (idx, sct) in self.sections.iter().enumerate() {
             let mut section_binary = sct.to_le_bytes();
+            if idx >= 1 && sct.header.sh_addralign > 1 {
+                if emitted_len % sct.header.sh_addralign as usize != 0 {
+                    let padding_len = if sct.header.sh_addr == 0 {
+                        sct.header.sh_offset as usize % sct.header.sh_addralign as usize
+                    } else {
+                        sct.header.sh_addr as usize % sct.header.sh_addralign as usize
+                    };
+                    file_binary.append(&mut vec![0x00; padding_len]);
+                }
+            }
+
+            emitted_len += section_binary.len();
             file_binary.append(&mut section_binary);
         }
 

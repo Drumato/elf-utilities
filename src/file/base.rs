@@ -56,7 +56,7 @@ impl ELFDumper {
             .open(output_filename)?;
 
         #[cfg(target_family = "windows")]
-            let file = std::fs::OpenOptions::new()
+        let file = std::fs::OpenOptions::new()
             .create(true)
             .read(true)
             .write(true)
