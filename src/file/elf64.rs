@@ -131,9 +131,39 @@ impl ELF64 {
             file_binary.append(&mut phdr_binary);
         }
 
-        for sct in self.sections.iter() {
+        let mut sections = self.sections.clone();
+        sections.sort_by_key(|sct| sct.header.sh_offset);
+
+        for (idx, sct) in sections.iter().enumerate() {
             let mut section_binary = sct.to_le_bytes();
+            if idx >= 1 && sct.header.sh_addralign > 1 {
+                if sct.header.sh_addr == 0 {
+                    if file_binary.len() < sct.header.sh_offset as usize {
+                        file_binary.append(&mut vec![
+                            0x00;
+                            sct.header.sh_offset as usize
+                                - file_binary.len()
+                        ]);
+                    }
+                } else {
+                    if file_binary.len() < sct.header.sh_addr as usize {
+                        file_binary.append(&mut vec![
+                            0x00;
+                            sct.header.sh_addr as usize
+                                - file_binary.len()
+                        ]);
+                    }
+                };
+            }
+
             file_binary.append(&mut section_binary);
+        }
+
+        if file_binary.len() < self.ehdr.e_shoff as usize {
+            file_binary.append(&mut vec![
+                0x00;
+                self.ehdr.e_shoff as usize - file_binary.len()
+            ]);
         }
 
         for sct in self.sections.iter() {

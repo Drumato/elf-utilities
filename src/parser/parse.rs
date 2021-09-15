@@ -23,6 +23,7 @@ pub enum ReadELFError {
 pub fn parse_elf64(file_path: &str) -> Result<file::ELF64, Box<dyn std::error::Error>> {
     Ok(parse_elf(file_path)?.as_64bit())
 }
+
 /// parse 32bit ELF
 pub fn parse_elf32(file_path: &str) -> Result<file::ELF32, Box<dyn std::error::Error>> {
     Ok(parse_elf(file_path)?.as_32bit())
@@ -166,6 +167,7 @@ fn parse_string_table(class: header::Class, section_raw_contents: &Vec<u8>) -> s
         _ => todo!(),
     }
 }
+
 fn parse_rela_symbol_table(
     class: header::Class,
     sct: &section::Section,
