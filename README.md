@@ -2,6 +2,10 @@
 
 # elf-utilities
 
+The elf-utilities library has been archived, and is no longer under active maintainenance.
+the successor project is [Drumato/pelf](https://github.com/Drumato/pelf).
+so please use Drumato/pelf.
+
 ## Projects
 
 - [Drumato/elfpeach](https://github.com/drumato/elfpeach.git) ... An TUI based ELF Analyzer
